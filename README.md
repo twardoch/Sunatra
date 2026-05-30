@@ -2,6 +2,11 @@
 
 **Your World, Your Music. Seamlessly Synced.**
 
+[![CI](https://github.com/twardoch/Sunatra/actions/workflows/ci.yml/badge.svg)](https://github.com/twardoch/Sunatra/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/twardoch/Sunatra?sort=semver)](https://github.com/twardoch/Sunatra/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+
 Sunatra is a cross-platform desktop app for your [Suno](https://suno.com) AI music
 library: a bulk downloader, a rich music library with playback, a prompt vault, and
 companion browser extensions for one-click authentication — in one application.
@@ -107,6 +112,22 @@ uv run python -m compileall sunatra
 
 CI runs lint, a syntax check, and the test suite on Windows, macOS, and Linux (all via uv)
 for every push and pull request.
+
+### Project layout
+
+```text
+sunatra/                  # the application package — run: python -m sunatra
+├── app.py                #   SunatraApp + main() entry point
+├── core/                 #   downloader, manifest (dedupe), config, utils, app identity
+├── services/             #   token server, updater, media keys, Discord, telemetry
+├── ui/                   #   CustomTkinter tabs and widgets
+└── assets/  resources/   #   bundled icons & splash (package data)
+build.py                  # build wheel/sdist + standalone app (uv + PyInstaller)
+publish.py                # bump tag + build + uv publish to PyPI
+install.py                # build wheel + uv tool install (the `sunatra` command)
+chrome_extension/  firefox_extension/   # companion MV3 token-sync extensions
+tests/                    # pytest suite
+```
 
 ## License
 
