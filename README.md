@@ -55,49 +55,58 @@ closes; a signed build is planned.)
 
 ## Run from source
 
-Requires **Python 3.10+**, **git**, and **VLC**.
+Requires [**uv**](https://docs.astral.sh/uv/), **git**, and **VLC** (Python is managed
+by uv).
 
 ```bash
 git clone https://github.com/twardoch/Sunatra.git
 cd Sunatra
-pip install -e .          # installs runtime dependencies
-python main.py            # run the app
+uv run python -m sunatra      # syncs deps and launches the app
 ```
 
-## Build an executable
+Sunatra is a proper Python package (`sunatra/`) — there is no loose `main.py`. The app
+runs as `python -m sunatra`, or as the `sunatra` command once installed.
 
-A single cross-platform build script handles Windows, macOS, and Linux:
+## Install locally
 
 ```bash
-pip install -e ".[dev]"   # includes PyInstaller
-python build.py           # output in dist/
+./install.py        # builds the wheel and installs it as a uv tool -> `sunatra` command
 ```
 
-`build.py` derives all paths from the repo, validates inputs, and produces a one-file
-binary on Windows/Linux and a `.app` bundle on macOS.
+## Build executables
+
+A single uv-driven build script produces both deliverables into `dist/`:
+
+```bash
+./build.py            # wheel + sdist (uv build) AND a standalone app (PyInstaller)
+./build.py --wheel    # just the Python distribution
+./build.py --exe      # just the standalone app
+```
+
+The standalone is a one-file binary on Windows/Linux and a `.app` bundle on macOS.
 
 ## Versioning & releases
 
-Sunatra uses **semantic-version git tags** via `hatch-vcs`. The running version is
-derived from the latest tag (`core/_version.py` is generated at build time and is not
+Sunatra uses **semantic-version git tags** via `hatch-vcs`; the running version is derived
+from the latest tag (`sunatra/_version.py` is generated at build time and is not
 committed). Pushing a `vX.Y.Z` tag triggers the GitHub Actions release workflow, which
 builds executables for all three platforms and attaches them to a GitHub Release.
 
 ```bash
-git tag v3.1.0 && git push origin v3.1.0    # cuts a release
+./publish.py        # uvx gitnextver (bump+tag) -> uv build -> uv publish (PyPI)
 ```
 
 ## Development
 
 ```bash
-pip install -e ".[dev]"
-ruff check .                       # lint
-pytest                             # tests
-python -m compileall core services ui main.py
+uv sync --extra dev
+uv run ruff check .                 # lint
+uv run pytest                       # tests
+uv run python -m compileall sunatra
 ```
 
-CI runs lint, a syntax check, and the test suite on Windows, macOS, and Linux for every
-push and pull request.
+CI runs lint, a syntax check, and the test suite on Windows, macOS, and Linux (all via uv)
+for every push and pull request.
 
 ## License
 

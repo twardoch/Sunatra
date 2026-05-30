@@ -8,7 +8,7 @@ Resolution order:
 """
 
 try:
-    from core._version import __version__  # type: ignore
+    from sunatra.core._version import __version__  # type: ignore
 except Exception:
     try:
         from importlib.metadata import PackageNotFoundError

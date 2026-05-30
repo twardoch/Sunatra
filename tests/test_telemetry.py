@@ -1,6 +1,6 @@
 """Tests for crash-report PII scrubbing."""
 
-from services.telemetry import REDACTED, scrub_event
+from sunatra.services.telemetry import REDACTED, scrub_event
 
 
 def test_redacts_token_and_cookie_keys():

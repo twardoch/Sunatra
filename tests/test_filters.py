@@ -1,6 +1,6 @@
 """Tests for the pure feed-filter predicate (upstream issue #3: Liked filter)."""
 
-from core.downloader import song_passes_filters
+from sunatra.core.downloader import song_passes_filters
 
 
 def _song(**over):

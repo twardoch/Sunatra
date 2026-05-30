@@ -3,7 +3,7 @@ import os
 import threading
 import time
 
-from core.app_meta import user_data_dir
+from sunatra.core.app_meta import user_data_dir
 
 # Delay between rapid set() calls and the actual disk write. Keeps slider/typing
 # events from rewriting config.json on every keystroke.

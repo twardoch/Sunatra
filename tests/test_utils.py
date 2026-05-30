@@ -5,7 +5,7 @@ import unicodedata
 import wave
 from concurrent.futures import ThreadPoolExecutor
 
-from core import utils
+from sunatra.core import utils
 
 # --- sanitize_filename -------------------------------------------------------
 

@@ -5,13 +5,13 @@ from tkinter import messagebox
 
 import customtkinter as ctk
 
-from core.utils import safe_messagebox
+from sunatra.core.utils import safe_messagebox
 
 
 class PromptManager:
     """Manages storage of prompts in JSON file."""
     def __init__(self, filename="prompts.json"):
-        from core.app_meta import user_data_dir
+        from sunatra.core.app_meta import user_data_dir
         data_dir = user_data_dir()
         self.filepath = os.path.join(data_dir, filename)
 

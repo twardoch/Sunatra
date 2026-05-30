@@ -12,7 +12,7 @@ from mutagen.id3 import APIC, COMM, ID3, TCON, TDRC, TIT2, TIT3, TPE1, TXXX, TYE
 from mutagen.mp3 import MP3
 from mutagen.wave import WAVE
 
-from core.app_meta import user_data_dir
+from sunatra.core.app_meta import user_data_dir
 
 # --- UUID cache ---
 # Persists {filepath: {"mtime": float, "uuid": str|None}} so repeated library

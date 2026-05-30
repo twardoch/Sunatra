@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 import requests
 
-from core.utils import (
+from sunatra.core.utils import (
     RateLimiter,
     embed_metadata,
     get_downloaded_uuids,
@@ -379,7 +379,7 @@ class SunoDownloader:
                 self._log(f"Manifest dedupe: {len(uuid_cache)} known UUIDs.", "info")
             else:
                 self._log(f"Building UUID cache from: {directory}", "info")
-                from core.utils import build_uuid_cache
+                from sunatra.core.utils import build_uuid_cache
                 uuid_cache = build_uuid_cache(directory)
                 self._log(f"Found {len(uuid_cache)} existing songs in cache.", "info")
 
@@ -956,7 +956,7 @@ class SunoDownloader:
 
             existing_uuids.add(uuid)
             if self.manifest is not None:
-                from core.manifest import LOCATION_DOWNLOADS
+                from sunatra.core.manifest import LOCATION_DOWNLOADS
                 self.manifest.add(
                     uuid,
                     title=title or "",

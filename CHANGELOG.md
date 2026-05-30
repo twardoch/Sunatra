@@ -3,7 +3,27 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/) via git tags (`hatch-vcs`).
 
-## [Unreleased] — Sunatra rebrand + cross-platform release pipeline
+## [Unreleased]
+
+### Package restructure + uv tooling
+- **Eliminated the root `main.py`.** All code now lives in a single importable
+  `sunatra/` package (`core`, `services`, `ui` moved under it; `assets`/`resources`
+  became package data). The app runs as `python -m sunatra` or the `sunatra` command;
+  the entry point is `sunatra/app.py:main` via `sunatra/__main__.py`. All imports were
+  rewritten to the `sunatra.*` namespace.
+- `uv build` now produces a clean, publishable wheel + sdist (assets bundled, `sunatra`
+  gui-script entry point). `hatch-vcs` writes `sunatra/_version.py`.
+- **`build.py`** rewritten with a `uv run` shebang: `uvx hatch clean` → `uv build`
+  (wheel/sdist) → PyInstaller standalone (`./build.py [--wheel|--exe]`).
+- **`publish.py`** added: `uvx gitnextver` (bump+tag) → build wheel → `uv publish`.
+- **`install.py`** added: build wheel → `uv tool install` (installs the `sunatra` command).
+- GitHub Actions (`ci.yml`, `release.yml`) now use uv end-to-end (`setup-uv`, `uv sync`,
+  `uv run`, `build.py`); release adds an optional `uv publish` job. Added `uv.lock`.
+- Mutable files (`library_cache.json`, `tags.json`, `changelog.txt`) now resolve to the
+  data dir when not frozen, so a pip/uv-installed package never writes into site-packages.
+- Removed vestigial `version.json` (the updater uses the GitHub Releases API).
+
+## [3.1.0] — Sunatra rebrand + cross-platform release pipeline
 
 ### Rebranded SunoSync → Sunatra
 - Renamed the application, window title, classes (`SunoSyncApp` → `SunatraApp`),

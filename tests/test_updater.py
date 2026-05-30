@@ -1,6 +1,6 @@
 """Tests for version parsing used by the GitHub-release update check."""
 
-from services.updater import _parse_version
+from sunatra.services.updater import _parse_version
 
 
 def test_parse_basic():

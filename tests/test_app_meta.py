@@ -2,7 +2,7 @@
 
 import os
 
-from core import app_meta
+from sunatra.core import app_meta
 
 
 def _redirect_appdirs(monkeypatch, root):

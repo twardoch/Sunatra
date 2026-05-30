@@ -5,7 +5,7 @@ import webbrowser
 import customtkinter as ctk
 import pyperclip
 
-from ui.widgets import CollapsibleCard
+from sunatra.ui.widgets import CollapsibleCard
 
 # Note: App instance passed here is expected to be a CTk class (from main.py)
 

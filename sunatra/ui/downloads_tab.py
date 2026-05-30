@@ -10,7 +10,7 @@ from tkinter import messagebox
 
 import customtkinter as ctk
 
-from core.manifest import LOCATION_DOWNLOADS, LOCATION_LIBRARY
+from sunatra.core.manifest import LOCATION_DOWNLOADS, LOCATION_LIBRARY
 
 # Cap rendered rows per page so a populated manifest (hundreds of entries)
 # doesn't block window paint or scroll. Library tab uses the same value.

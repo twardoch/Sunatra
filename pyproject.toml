@@ -38,27 +38,26 @@ dev = [
 ]
 
 [project.gui-scripts]
-sunatra = "main:main"
+sunatra = "sunatra.app:main"
 
 # --- Versioning: derived from semver git tags via hatch-vcs ------------------
 [tool.hatch.version]
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "core/_version.py"
+version-file = "sunatra/_version.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["core", "services", "ui"]
-force-include = { "main.py" = "main.py" }
+packages = ["sunatra"]
 
 [tool.hatch.build.targets.sdist]
-include = ["core", "services", "ui", "main.py", "build.py", "assets", "resources", "version.json"]
+include = ["sunatra", "build.py", "publish.py", "install.py", "tests", "README.md", "CHANGELOG.md", "LICENSE"]
 
 # --- Tooling -----------------------------------------------------------------
 [tool.ruff]
 target-version = "py310"
 line-length = 120
-extend-exclude = ["core/_version.py"]
+extend-exclude = ["sunatra/_version.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B"]
@@ -82,7 +81,7 @@ python_version = "3.10"
 ignore_missing_imports = true
 follow_imports = "silent"
 warn_unused_ignores = false
-exclude = ["core/_version.py", "build/", "dist/"]
+exclude = ["sunatra/_version.py", "build/", "dist/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

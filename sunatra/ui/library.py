@@ -10,8 +10,8 @@ from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
-from core.utils import open_file, read_song_metadata
-from ui.widgets import LibraryRow
+from sunatra.core.utils import open_file, read_song_metadata
+from sunatra.ui.widgets import LibraryRow
 
 logger = logging.getLogger(__name__)
 
@@ -371,7 +371,7 @@ class LibraryTab(ctk.CTkFrame):
         # Render rows
         for i, song in enumerate(page_items):
             if 'title' in song:
-                from core.utils import clean_title
+                from sunatra.core.utils import clean_title
                 song['title'] = clean_title(song['title'])
             self._add_row(self.scroll_frame, song, start + i)
 
@@ -455,7 +455,7 @@ class LibraryTab(ctk.CTkFrame):
     def edit_metadata(self, data):
         """Open metadata editor dialog."""
         try:
-            from ui.metadata_editor import MetadataEditorDialog
+            from sunatra.ui.metadata_editor import MetadataEditorDialog
 
             def on_save(updated_data):
                 # Refresh library to show updated metadata
@@ -472,7 +472,7 @@ class LibraryTab(ctk.CTkFrame):
         if not prompt_text:
             # Try to read from file if missing in cache
             if "filepath" in data:
-                from core.utils import read_song_metadata
+                from sunatra.core.utils import read_song_metadata
                 full_data = read_song_metadata(data["filepath"])
                 prompt_text = full_data.get("prompt", "")
 
@@ -487,7 +487,7 @@ class LibraryTab(ctk.CTkFrame):
 
         if title:
             try:
-                from ui.vault import PromptManager
+                from sunatra.ui.vault import PromptManager
                 manager = PromptManager()
                 # Extract tags (Genre)
                 tags = data.get("genre", "")
@@ -618,7 +618,7 @@ class LibraryTab(ctk.CTkFrame):
         if not self.library_path or not os.path.isdir(self.library_path):
             messagebox.showerror("Rebuild", f"Library folder not found:\n{self.library_path}")
             return
-        from core.manifest import LOCATION_LIBRARY
+        from sunatra.core.manifest import LOCATION_LIBRARY
         result = self.manifest.upsert_from_disk(self.library_path, LOCATION_LIBRARY)
         self.refresh_library()
         messagebox.showinfo(
@@ -635,7 +635,7 @@ class LibraryTab(ctk.CTkFrame):
         if self.manifest is None:
             messagebox.showinfo("Forget Missing", "Manifest not initialized.")
             return
-        from core.manifest import LOCATION_LIBRARY
+        from sunatra.core.manifest import LOCATION_LIBRARY
         candidates = [
             e for e in self.manifest.by_location(LOCATION_LIBRARY)
             if not (e.get("filepath") and os.path.exists(e["filepath"]))
@@ -732,7 +732,7 @@ class LibraryTab(ctk.CTkFrame):
         if not filepaths: return
 
         try:
-            from core.utils import copy_files_to_clipboard
+            from sunatra.core.utils import copy_files_to_clipboard
             if copy_files_to_clipboard(filepaths):
                 messagebox.showinfo("Copied", f"Copied {len(filepaths)} files to clipboard.")
             else:

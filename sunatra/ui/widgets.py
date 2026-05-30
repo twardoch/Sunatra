@@ -387,7 +387,7 @@ class LibraryRow(ctk.CTkFrame):
         self.grid_columnconfigure(4, weight=1, minsize=80)  # Duration
 
         # Import tooltip
-        from ui.tooltip import ToolTip
+        from sunatra.ui.tooltip import ToolTip
 
         # 0. Artwork
         self.image_path = data.get("image_path")

@@ -2,7 +2,7 @@
 
 import json
 
-from core.manifest import LOCATION_DOWNLOADS, LOCATION_LIBRARY, LibraryManifest
+from sunatra.core.manifest import LOCATION_DOWNLOADS, LOCATION_LIBRARY, LibraryManifest
 
 
 def _mf(tmp_path):

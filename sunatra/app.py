@@ -48,19 +48,19 @@ if getattr(sys, 'frozen', False):
 
 import sentry_sdk
 
-from core.app_meta import APP_ID, migrate_legacy_data
-from core.config_manager import ConfigManager
-from core.manifest import LOCATION_LIBRARY, LibraryManifest
-from core.theme import ThemeManager
-from core.version import __version__ as APP_VERSION
-from services.bug_reporter import show_crash_popup
-from services.media_keys import MediaKeyHandler
-from services.token_server import TokenServer
-from ui.downloader_tab import DownloaderTab
-from ui.library import LibraryTab
-from ui.player import PlayerWidget
-from ui.settings import SettingsTab
-from ui.sidebar import Sidebar
+from sunatra.core.app_meta import APP_ID, migrate_legacy_data, user_data_dir
+from sunatra.core.config_manager import ConfigManager
+from sunatra.core.manifest import LOCATION_LIBRARY, LibraryManifest
+from sunatra.core.theme import ThemeManager
+from sunatra.core.version import __version__ as APP_VERSION
+from sunatra.services.bug_reporter import show_crash_popup
+from sunatra.services.media_keys import MediaKeyHandler
+from sunatra.services.token_server import TokenServer
+from sunatra.ui.downloader_tab import DownloaderTab
+from sunatra.ui.library import LibraryTab
+from sunatra.ui.player import PlayerWidget
+from sunatra.ui.settings import SettingsTab
+from sunatra.ui.sidebar import Sidebar
 
 # Initialize Sentry
 # NOTE: User must replace 'YOUR_DSN_HERE' with their actual DSN
@@ -68,7 +68,7 @@ SENTRY_DSN = "YOUR_DSN_HERE"
 
 if SENTRY_DSN and SENTRY_DSN != "YOUR_DSN_HERE":
     try:
-        from services.telemetry import scrub_event
+        from sunatra.services.telemetry import scrub_event
         sentry_sdk.init(
             dsn=SENTRY_DSN,
             traces_sample_rate=1.0,
@@ -99,15 +99,18 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = handle_exception
 
 # --- Constants ---
+# Mutable per-user files live in a writable location: next to the executable
+# when frozen (preserves existing installs), otherwise the Sunatra data dir — so
+# a pip/uv-installed package never tries to write into read-only site-packages.
 if getattr(sys, 'frozen', False):
-    base_path = os.path.dirname(sys.executable)
+    _data_base = os.path.dirname(sys.executable)
 else:
-    base_path = os.path.dirname(os.path.abspath(__file__))
+    _data_base = user_data_dir()
 
 CONFIG_FILE = "config.json"
-CACHE_FILE = os.path.join(base_path, "library_cache.json")
-TAGS_FILE = os.path.join(base_path, "tags.json")
-CHANGELOG_FILE = os.path.join(base_path, "changelog.txt")
+CACHE_FILE = os.path.join(_data_base, "library_cache.json")
+TAGS_FILE = os.path.join(_data_base, "tags.json")
+CHANGELOG_FILE = os.path.join(_data_base, "changelog.txt")
 
 # Set CTk Theme
 ctk.set_appearance_mode("Dark")
@@ -126,7 +129,7 @@ def resource_path(relative_path):
 
 import webbrowser
 
-from services.updater import Updater
+from sunatra.services.updater import Updater
 
 
 class SunatraApp(ctk.CTk):
@@ -315,7 +318,7 @@ class SunatraApp(ctk.CTk):
             self.player.set_library_tab(self.library)
             self.views["library"] = self.library
 
-            from ui.downloads_tab import DownloadsTab
+            from sunatra.ui.downloads_tab import DownloadsTab
             self.downloads_view = DownloadsTab(
                 self.content_area,
                 config_manager=self.config_manager,
@@ -324,13 +327,13 @@ class SunatraApp(ctk.CTk):
             )
             self.views["downloads"] = self.downloads_view
 
-            from ui.ignored_tab import IgnoredTab
+            from sunatra.ui.ignored_tab import IgnoredTab
             self.ignored_view = IgnoredTab(self.content_area, manifest=self.manifest)
             self.views["ignored"] = self.ignored_view
 
             # --- New Tabs ---
-            from ui.dashboard import DashboardTab
-            from ui.vault import VaultTab
+            from sunatra.ui.dashboard import DashboardTab
+            from sunatra.ui.vault import VaultTab
 
             self.dashboard = DashboardTab(self.content_area, library_tab=self.library)
             self.views["dashboard"] = self.dashboard
@@ -339,7 +342,7 @@ class SunatraApp(ctk.CTk):
             self.views["vault"] = self.vault
 
             # Create Lyrics Panel (hidden by default)
-            from ui.lyrics import LyricsPanel
+            from sunatra.ui.lyrics import LyricsPanel
             self.lyrics_panel = LyricsPanel(self)
             self.lyrics_panel.grid(row=0, column=2, rowspan=2, sticky="ns")
             self.lyrics_panel.grid_remove()  # Start hidden
@@ -476,7 +479,7 @@ class SunatraApp(ctk.CTk):
             return  # Manifest already populated (e.g., partial prior migration).
 
         try:
-            from core.utils import _scan_with_uuid_cache
+            from sunatra.core.utils import _scan_with_uuid_cache
             scanned = _scan_with_uuid_cache(legacy_path, (".mp3", ".wav"))
         except Exception as e:
             print(f"Migration scan failed: {e}")

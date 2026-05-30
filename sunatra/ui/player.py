@@ -17,7 +17,7 @@ except (ImportError, OSError):
 # Discord RPC disabled — the bundled client_id belongs to someone else's
 # Discord application. Re-enable by restoring this import and the constructor
 # call below once a Sunatra-owned Discord app ID is in place.
-# from services.discord import DiscordRPC
+# from sunatra.services.discord import DiscordRPC
 
 
 class _NullDiscord:

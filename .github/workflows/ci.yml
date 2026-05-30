@@ -22,24 +22,22 @@ jobs:
         with:
           fetch-depth: 0   # full history + tags so hatch-vcs can resolve a version
 
-      - uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
-          cache: pip
 
-      - name: Install (package + dev tools)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+      - name: Sync (package + dev tools)
+        run: uv sync --extra dev
 
       - name: Lint
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: Syntax check (all modules incl. GUI)
-        run: python -m compileall -q core services ui main.py build.py conftest.py
+        run: uv run python -m compileall -q sunatra build.py publish.py install.py conftest.py
 
       - name: Tests
-        run: pytest -q
+        run: uv run pytest -q
 
       - name: Branding guard (no SunoSync in source)
         shell: bash
@@ -49,7 +47,7 @@ jobs:
           # rebrand regression.
           if grep -rin "sunosync" --include="*.py" --include="*.js" --include="*.json" \
                --include="*.html" . | grep -vE "app_meta\.py|tests/"; then
-            echo "::error::Found 'SunoSync' outside core/app_meta.py and tests/ — rebrand regression."
+            echo "::error::Found 'SunoSync' outside app_meta.py and tests/ — rebrand regression."
             exit 1
           fi
           echo "Branding guard passed."

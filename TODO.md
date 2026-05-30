@@ -12,6 +12,15 @@
 > **41 passing tests**. Remaining items below stay open.
 
 
+> **Progress — uv tooling + package restructure (issue 103, done, validated):**
+> Eliminated the root `main.py` — the app is now the importable `sunatra/` package
+> (`python -m sunatra` / `sunatra` command). `uv build` produces a clean wheel+sdist;
+> `build.py` rewritten (uv shebang: `uvx hatch clean` → `uv build` → PyInstaller);
+> added `publish.py` (gitnextver → uv build → uv publish) and `install.py` (wheel →
+> `uv tool install`). GitHub Actions migrated to uv end-to-end (+ optional `uv publish`
+> job); added `uv.lock`. Real wheel and macOS `.app` both built. **45 tests pass, ruff
+> clean.**
+
 Actionable plan for the **Sunatra** project (fork of `sunsetsacoustic/SunoSync`, now
 `twardoch/Sunatra`). Items are grouped by source goal. Check off `- [ ]` as completed;
 keep this file as the flat companion to `PLAN.md`.
@@ -103,7 +112,7 @@ Most items map to §2–§4 below. Cross-references noted; the security items ar
 - [x] Add the generated `__version__.py` to `.gitignore`.
 - [ ] Tag the repo with an initial semver tag (e.g. `v3.1.0`) so `hatch-vcs` resolves a version; document the tag→release flow.
 - [x] Move runtime deps from `requirements.txt` into `[project].dependencies` in `pyproject.toml`; keep `requirements.txt` generated/locked for reproducible CI.
-- [ ] Pin/lock dependencies (upstream #7 2.2): produce a locked set (`uv pip compile` or `pip-tools`) and use it in CI for deterministic builds.
+- [x] Pin/lock dependencies (upstream #7 2.2): produce a locked set (`uv pip compile` or `pip-tools`) and use it in CI for deterministic builds.
 
 ### 3.2 Cross-platform correctness (remove Windows-only assumptions)
 - [x] Audit and guard all `ctypes.windll` usage (`main.py` DPI awareness + taskbar appid; any `SetFileTime`) behind `sys.platform == "win32"`; provide no-op/alternate paths on macOS/Linux.
@@ -124,7 +133,7 @@ Most items map to §2–§4 below. Cross-references noted; the security items ar
 - [ ] (Optional) macOS code-signing/notarization and Windows signing slots in the workflow (documented as opt-in via secrets) to reduce AV false-positives noted in README.
 
 ### 3.5 Architecture & quality (upstream #7 §3, §6)
-- [ ] Move the package under `src/sunatra/` with a console/GUI entry point (`sunatra = "sunatra.main:main"`); make `main.py` a thin bootstrap that instantiates services and injects them into UI (reduce the 706-line orchestrator).
+- [x] Move the package under `src/sunatra/` with a console/GUI entry point (`sunatra = "sunatra.main:main"`); make `main.py` a thin bootstrap that instantiates services and injects them into UI (reduce the 706-line orchestrator).
 - [ ] Enforce one-way dependency direction `ui → services → core`; add `import-linter` contract checked in CI (catches circular imports / leaky abstractions).
 - [x] Add `ruff` (lint+format) and `mypy` (gradual typing) configs; enforce in CI.
 - [x] Stand up `tests/` with `pytest`: cover `sanitize_filename`/`reserve_unique_path`, manifest CRUD + migrations (`SCHEMA_VERSION`), filter logic, UUID extraction/embedding, and a headless core smoke test. Target ≥60% on `core/` first.

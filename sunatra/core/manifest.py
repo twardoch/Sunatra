@@ -16,7 +16,7 @@ import os
 import threading
 import time
 
-from core.app_meta import user_data_dir
+from sunatra.core.app_meta import user_data_dir
 
 SCHEMA_VERSION = 1
 
@@ -269,7 +269,7 @@ class LibraryManifest:
         Does NOT prune entries whose UUIDs are absent from disk — use
         Forget Missing for that. Returns counts: {added, updated, scanned}.
         """
-        from core.utils import _scan_with_uuid_cache
+        from sunatra.core.utils import _scan_with_uuid_cache
         scanned = _scan_with_uuid_cache(directory, (".mp3", ".wav"))
         added = updated = 0
         with self._lock:

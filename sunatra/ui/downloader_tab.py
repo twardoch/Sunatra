@@ -7,13 +7,13 @@ from tkinter import messagebox
 
 import customtkinter as ctk
 
-from core.downloader import SunoDownloader
+from sunatra.core.downloader import SunoDownloader
 
 # Helpers and Widgets
-from core.utils import truncate_path
-from ui.layouts import create_token_dialog
-from ui.tooltip import ToolTip
-from ui.widgets import Dropdown, EmptyStateWidget, FilterBar, FlowLayout, SongCard
+from sunatra.core.utils import truncate_path
+from sunatra.ui.layouts import create_token_dialog
+from sunatra.ui.tooltip import ToolTip
+from sunatra.ui.widgets import Dropdown, EmptyStateWidget, FilterBar, FlowLayout, SongCard
 
 
 # Stdout Capture for Debug Log

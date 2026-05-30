@@ -1,92 +1,106 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run -s
+# /// script
+# requires-python = ">=3.10"
+# ///
 """
-Cross-platform build entry point for Sunatra.
+Build Sunatra deliverables with uv + hatch + PyInstaller.
 
-Derives every data path from this file's location (no hard-coded spec to drift
-out of sync — see upstream issue #7 §2.1), validates that referenced resources
-exist, then invokes PyInstaller with platform-appropriate options:
+Two deliverables, both landing in ``dist/``:
+  1. Python distribution — ``sunatra-X.Y.Z-py3-none-any.whl`` + sdist (``uv build``),
+     for PyPI / ``uv tool install``. The version is stamped from the git tag by
+     hatch-vcs.
+  2. Standalone app — one-file ``Sunatra`` / ``Sunatra.exe`` on Windows/Linux and a
+     ``Sunatra.app`` bundle on macOS (PyInstaller), for end users without Python.
 
-    Windows : one-file  Sunatra.exe   (icon: resources/icon.ico)
-    macOS   : Sunatra.app bundle       (icon: resources/icon.icns if present)
-    Linux   : one-file  Sunatra        (no icon embedding)
+Run directly (uv resolves its own environment):
+    ./build.py              # clean + wheel/sdist + standalone executable
+    ./build.py --wheel      # clean + wheel/sdist only (fast; used by publish/install)
+    ./build.py --exe        # clean + standalone executable only
 
-Usage:
-    python build.py            # build for the current OS
-    python build.py --onedir   # force one-directory output (debugging)
+Importable too: ``from build import build_wheel, build_executable, clean``.
 """
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 APP_NAME = "Sunatra"
-ENTRY = ROOT / "main.py"
+ENTRY = ROOT / "sunatra" / "__main__.py"
 
-# (source, dest-in-bundle) data files/dirs to ship.
+# (source relative to repo, destination inside the bundle) — matches resource_path().
 DATA = [
-    ("assets", "assets"),
-    ("resources", "resources"),
-    ("version.json", "."),
+    ("sunatra/assets", "assets"),
+    ("sunatra/resources", "resources"),
 ]
 
 
-def _validate() -> None:
-    missing = [ENTRY.name] if not ENTRY.exists() else []
-    for src, _ in DATA:
-        if not (ROOT / src).exists():
-            missing.append(src)
-    if missing:
-        print(f"ERROR: build inputs missing: {', '.join(missing)}", file=sys.stderr)
-        sys.exit(1)
+def _run(cmd: list[str]) -> None:
+    print("+", " ".join(cmd), flush=True)
+    subprocess.run(cmd, check=True, cwd=ROOT)
+
+
+def clean() -> None:
+    """Remove previous build artifacts via hatch."""
+    _run(["uvx", "hatch", "clean"])
+
+
+def build_wheel() -> None:
+    """Build the wheel + sdist into dist/ (version stamped from the git tag)."""
+    _run(["uv", "build"])
 
 
 def _icon() -> str | None:
     if sys.platform == "win32":
-        cand = ROOT / "resources" / "icon.ico"
+        cand = ROOT / "sunatra" / "resources" / "icon.ico"
     elif sys.platform == "darwin":
-        cand = ROOT / "resources" / "icon.icns"
+        cand = ROOT / "sunatra" / "resources" / "icon.icns"
     else:
         return None
     return str(cand) if cand.exists() else None
 
 
-def main() -> None:
-    _validate()
-    try:
-        import PyInstaller.__main__  # noqa: WPS433
-    except ImportError:
-        print("ERROR: PyInstaller is not installed (pip install pyinstaller).", file=sys.stderr)
-        sys.exit(1)
-
-    onedir = "--onedir" in sys.argv
-
+def build_executable() -> None:
+    """Build the standalone app via PyInstaller, inside the project env (uv run)."""
     args = [
+        "uv", "run", "--extra", "dev", "pyinstaller",
         str(ENTRY),
         "--name", APP_NAME,
         "--noconfirm",
         "--clean",
         "--windowed",
+        "--paths", str(ROOT),                 # so `import sunatra` resolves
         "--collect-all", "customtkinter",
         "--hidden-import", "PIL._tkinter_finder",
         "--hidden-import", "babel.numbers",
     ]
-
     # One-file everywhere except macOS, where a .app bundle (onedir) is standard.
-    if sys.platform == "darwin" or onedir:
-        pass  # default is onedir
-    else:
+    if sys.platform != "darwin":
         args.append("--onefile")
-
     for src, dst in DATA:
         args += ["--add-data", f"{ROOT / src}{os.pathsep}{dst}"]
-
     icon = _icon()
     if icon:
         args += ["--icon", icon]
+    _run(args)
 
-    print("Running: pyinstaller " + " ".join(args))
-    PyInstaller.__main__.run(args)
+
+def build_all() -> None:
+    clean()
+    build_wheel()
+    build_executable()
+
+
+def main() -> None:
+    if "--wheel" in sys.argv:
+        clean()
+        build_wheel()
+    elif "--exe" in sys.argv:
+        clean()
+        build_executable()
+    else:
+        build_all()
     print(f"\nBuild complete. Artifacts in: {ROOT / 'dist'}")
 
 

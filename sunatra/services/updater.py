@@ -3,8 +3,8 @@ import threading
 
 import requests
 
-from core.app_meta import GITHUB_RELEASES_API, GITHUB_RELEASES_URL
-from core.version import __version__ as CURRENT_VERSION
+from sunatra.core.app_meta import GITHUB_RELEASES_API, GITHUB_RELEASES_URL
+from sunatra.core.version import __version__ as CURRENT_VERSION
 
 
 def _parse_version(text: str) -> tuple[int, ...]:

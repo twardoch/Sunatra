@@ -4,8 +4,8 @@ import shutil
 
 import customtkinter as ctk
 
-from ui.layouts import create_settings_card
-from ui.widgets import CollapsibleCard
+from sunatra.ui.layouts import create_settings_card
+from sunatra.ui.widgets import CollapsibleCard
 
 
 class SettingsTab(ctk.CTkFrame):

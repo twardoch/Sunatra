@@ -120,7 +120,7 @@ class MetadataEditorDialog(ctk.CTkToplevel):
             # Write to file using suno_utils
             filepath = self.song_data.get("filepath")
             if filepath and os.path.exists(filepath):
-                from core.utils import save_metadata_to_file
+                from sunatra.core.utils import save_metadata_to_file
 
                 if save_metadata_to_file(filepath, updated_data):
                     messagebox.showinfo("Success", "Metadata updated successfully!")
