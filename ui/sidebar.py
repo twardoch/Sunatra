@@ -17,13 +17,13 @@ class Sidebar(ctk.CTkFrame):
         # --- Header Area (Logo + Mini Settings) ---
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(fill="x", pady=(20, 10), padx=15)
-        
+
         # Logo
-        logo_label = ctk.CTkLabel(header_frame, text="SunoSync",
+        logo_label = ctk.CTkLabel(header_frame, text="Sunatra",
                                   font=("Inter", 20, "bold"),
                                   text_color="#FFFFFF")
         logo_label.pack(side="left")
-        
+
         # Mini Settings Icon (Redundant access)
         settings_btn = ctk.CTkButton(header_frame, text="⚙", width=24, height=24,
                                      fg_color="transparent", hover_color="#333333",
@@ -49,7 +49,7 @@ class Sidebar(ctk.CTkFrame):
         self._add_nav_item("Library", "🎵", "library", parent=self.nav_container)
         self._add_nav_item("Ignored", "🚫", "ignored", parent=self.nav_container)
         self._add_nav_item("Prompt Vault", "📓", "vault", parent=self.nav_container)
-        
+
         # Settings (Bottom)
         self._add_nav_item("Settings", "⚙", "settings", parent=self.bottom_container)
 
@@ -77,7 +77,7 @@ class Sidebar(ctk.CTkFrame):
 
     def _add_nav_item(self, text, icon, view_name, parent=None, bottom=False):
         target = parent if parent else self
-        
+
         # Container frame for indicator + button
         # Reduced height for tighter feel (32px)
         item_frame = ctk.CTkFrame(target, fg_color="transparent", height=32)

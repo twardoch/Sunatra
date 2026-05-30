@@ -1,5 +1,5 @@
-import threading
 from pynput import keyboard
+
 
 class MediaKeyHandler:
     def __init__(self, player):

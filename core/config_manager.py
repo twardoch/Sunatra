@@ -2,7 +2,8 @@ import json
 import os
 import threading
 import time
-import appdirs
+
+from core.app_meta import user_data_dir
 
 # Delay between rapid set() calls and the actual disk write. Keeps slider/typing
 # events from rewriting config.json on every keystroke.
@@ -11,9 +12,8 @@ _SAVE_DEBOUNCE_SECONDS = 0.5
 
 class ConfigManager:
     def __init__(self, config_filename="config.json"):
-        # Use appdirs to get the standard user data directory
-        # AppName: SunoSync, AppAuthor: InternetThot
-        self.data_dir = appdirs.user_data_dir("SunoSync", "InternetThot")
+        # Canonical Sunatra per-user data directory (see core.app_meta).
+        self.data_dir = user_data_dir()
 
         # Ensure the directory exists
         if not os.path.exists(self.data_dir):
@@ -35,7 +35,7 @@ class ConfigManager:
             return
 
         try:
-            with open(self.config_file, 'r') as f:
+            with open(self.config_file) as f:
                 self.config = json.load(f)
         except (json.JSONDecodeError, ValueError) as e:
             # Quarantine the corrupt file so the user can recover values manually.

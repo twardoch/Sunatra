@@ -1,15 +1,101 @@
 import os
+import re
+import threading
 import time
 import traceback
-import requests
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
-import threading
-import re
 
-from core.utils import RateLimiter, get_downloaded_uuids, embed_metadata, sanitize_filename, get_unique_filename, reserve_unique_path
+import requests
+
+from core.utils import (
+    RateLimiter,
+    embed_metadata,
+    get_downloaded_uuids,
+    reserve_unique_path,
+    sanitize_filename,
+)
 
 GEN_API_BASE = "https://studio-api.prod.suno.com"
+
+
+def song_passes_filters(song_data, filters, *, stems_only=False, scan_only=False, is_stem=False):
+    """Pure predicate: does *song_data* survive the UI *filters*?
+
+    Extracted from ``SunoDownloader.run`` so the filtering rules (notably the
+    "Liked" filter — upstream issue #3) are independently unit-testable and not
+    buried in a 1000-line network loop. No I/O; dedupe is handled by the caller.
+
+    Liked detection is intentionally robust: Suno has shipped the signal as a
+    boolean (``is_liked``), a reaction (``reaction.reaction_type == 'L'``), and a
+    vote (``vote == 'up'``) across API revisions — any one counts as liked.
+    """
+    filters = filters or {}
+
+    if not song_data or not song_data.get("id"):
+        return False
+
+    metadata = song_data.get("metadata") or {}
+    clip_type = metadata.get("type", "")
+
+    reaction = song_data.get("reaction") or {}
+    reaction_type = reaction.get("reaction_type", "")
+    vote = song_data.get("vote", "") or metadata.get("vote", "")
+    is_liked = bool(song_data.get("is_liked", False)) or reaction_type == "L" or vote == "up"
+    is_disliked = reaction_type == "D" or vote == "down"
+
+    is_trashed = song_data.get("is_trashed", False)
+    is_public = song_data.get("is_public", False)
+    audio_url = song_data.get("audio_url")
+
+    # 0. Need audio unless we're only scanning (classification) the feed.
+    if not audio_url and not scan_only:
+        return False
+    # 1. Trash
+    if not filters.get("trashed", False) and is_trashed:
+        return False
+    # 2. Stems (Hide Stems is overridden when Stems Only is active)
+    if filters.get("hide_gen_stems", False) and not stems_only and is_stem:
+        return False
+    if stems_only and not is_stem:
+        return False
+    # 3. Liked / Disliked
+    if filters.get("liked", False) and not is_liked:
+        return False
+    if filters.get("disliked", False) and not is_disliked:
+        return False
+    if filters.get("hide_disliked", False) and not filters.get("disliked", False) and is_disliked:
+        return False
+    # 5. Public / Private
+    if filters.get("is_public", False) and not is_public:
+        return False
+    if filters.get("is_private", False) and is_public:
+        return False
+    # 6. Studio / 7. Type
+    if filters.get("hide_studio_clips", False) and clip_type == "studio_clip":
+        return False
+    if filters.get("type", "all") == "uploads" and clip_type != "upload":
+        return False
+    # 8. Full song (heuristic: long or concatenated)
+    if filters.get("full_song", False):
+        duration = metadata.get("duration", 0) or 0
+        if duration < 60 and clip_type != "concat":
+            return False
+    # 9. Cover / 10. Persona
+    if filters.get("is_cover", False) and clip_type != "cover":
+        return False
+    if filters.get("is_persona", False) and not metadata.get("persona_id"):
+        return False
+    # 11. Free-text search across title/tags/prompt
+    search_text = (filters.get("search_text", "") or "").strip().lower()
+    if search_text:
+        title = (song_data.get("title", "") or "").lower()
+        tags = (metadata.get("tags", "") or "").lower()
+        prompt = (metadata.get("prompt", "") or "").lower()
+        if search_text not in f"{title} {tags} {prompt}":
+            return False
+
+    return True
 
 
 class Signal:
@@ -39,7 +125,7 @@ class DownloaderSignals:
         self.download_complete = Signal(bool)   # success
         self.error_occurred = Signal(str)       # error message
         self.thumbnail_fetched = Signal((bytes, str)) # data, title/id context
-        
+
         # New Signals for Queue
         self.song_started = Signal((str, str, bytes, dict)) # uuid, title, thumbnail_data, metadata
         self.song_updated = Signal((str, str, int))   # uuid, status, progress
@@ -54,7 +140,7 @@ class DownloaderSignals:
 class SunoDownloader:
     STEM_INDICATORS = [
         "(bass)", "(drums)", "(backing vocal)", "(backing vocals)", "(vocals)", "(instrumental)",
-        "(woodwinds)", "(brass)", "(fx)", "(synth)", "(strings)", 
+        "(woodwinds)", "(brass)", "(fx)", "(synth)", "(strings)",
         "(percussion)", "(keyboard)", "(guitar)"
     ]
 
@@ -67,8 +153,8 @@ class SunoDownloader:
         # instead of walking the directory for ID3 tags.
         self.manifest = manifest
 
-    def configure(self, token, directory, max_pages, start_page, 
-                  organize_by_month, embed_metadata_enabled, prefer_wav, download_delay, 
+    def configure(self, token, directory, max_pages, start_page,
+                  organize_by_month, embed_metadata_enabled, prefer_wav, download_delay,
                   filter_settings=None, scan_only=False, target_songs=None, save_lyrics=True,
                   organize_by_track=False, stems_only=False, smart_resume=False, force_rescan=False,
                   organize_by_playlist=False):
@@ -107,13 +193,13 @@ class SunoDownloader:
 
     def run(self):
         self.stop_event.clear()
-        
+
         token = self.config.get("token", "").strip()
-        
+
         # Sanitize token: Remove any non-ASCII characters (e.g. ellipsis from copy-paste)
         if token:
             token = re.sub(r'[^\x00-\x7F]+', '', token)
-            
+
         if not token:
             error_msg = "Token missing; download halted."
             self._log(error_msg, "error")
@@ -129,7 +215,7 @@ class SunoDownloader:
 
         if not os.path.exists(directory):
             os.makedirs(directory)
-        
+
         delay = self.config.get("download_delay", 0)
         if delay > 0:
             self._log(f"Rate limiter enabled: waiting {delay:.2f}s between downloads.", "info")
@@ -140,7 +226,7 @@ class SunoDownloader:
 
         target_songs = self.config.get("target_songs", [])
         filters = self.config.get("filter_settings", {})
-        
+
         headers = {"Authorization": f"Bearer {token}"}
         if self.manifest is not None:
             existing_uuids = self.manifest.dedupe_set()
@@ -152,7 +238,7 @@ class SunoDownloader:
         subfolder_name = None
         do_organize = self.config.get("organize_by_playlist")
         ws_name = filters.get("workspace_name")
-        
+
         if do_organize and workspace_id and ws_name:
              # If it's a workspace/playlist download, we use the name as subfolder
             subfolder_name = sanitize_filename(ws_name)
@@ -162,7 +248,7 @@ class SunoDownloader:
         if target_songs:
             self.signals.status_changed.emit(f"Downloading {len(target_songs)} selected songs...")
             self._log(f"Starting download of {len(target_songs)} selected songs...", "info")
-            
+
             with ThreadPoolExecutor(max_workers=3) as executor:
                 futures = []
                 for song_data in target_songs:
@@ -179,11 +265,11 @@ class SunoDownloader:
                             subfolder_name
                         )
                     )
-                
+
                 # Wait for futures but check stop event
                 total_tasks = len(futures)
                 completed_tasks = 0
-                
+
                 for future in futures:
                     if self.is_stopped():
                         executor.shutdown(wait=False, cancel_futures=True)
@@ -198,7 +284,7 @@ class SunoDownloader:
                         import traceback
                         error_msg = f"Download error: {str(e)}\n{traceback.format_exc()}"
                         self._log(error_msg, "error")
-            
+
             if self.is_stopped():
                 self.signals.status_changed.emit("Stopped")
                 self._log("Process stopped by user.", "warning")
@@ -217,12 +303,12 @@ class SunoDownloader:
         # --- URL Selection Logic ---
         workspace_id = filters.get("workspace_id")
         is_public = filters.get("is_public", False)
-        
+
         params = []
         # Common params
         if filters.get("liked"): params.append("liked=true")
         if filters.get("trashed"): params.append("trashed=true")
-        
+
         if workspace_id:
             # Workspace/Project Endpoint
             # User correction: Use /api/project/{id} (no /clips, no trailing slash before ?)
@@ -236,7 +322,7 @@ class SunoDownloader:
                      base_url = f"https://studio-api.prod.suno.com/api/playlist/{workspace_id}/"
                 else:
                      base_url = f"https://studio-api.prod.suno.com/api/project/{workspace_id}"
-            
+
             self._log(f"Fetching from {filters.get('type', 'Project')}: {filters.get('workspace_name', workspace_id)}", "info")
         elif is_public:
             # Public Feed (v2)
@@ -247,26 +333,26 @@ class SunoDownloader:
             # My Library (v1) - Default
             base_url = "https://studio-api.prod.suno.com/api/feed/"
             self._log("Fetching from My Library", "info")
-            
+
         # Append params to base_url
         if params:
             separator = "&" if "?" in base_url else "?"
             base_url += separator + "&".join(params)
-        
+
         # Check if this is a playlist (playlists might not support pagination)
         is_playlist = filters and filters.get("type") == "playlist"
-        
+
         # Ensure URL ends with page= for the loop (unless it's a playlist)
         if not is_playlist:
             separator = "&" if "?" in base_url else "?"
             base_url += f"{separator}page="
-            
+
         subfolder_name = None
         # Only create subfolder if enabled in settings
         do_organize = self.config.get("organize_by_playlist")
         ws_name = filters.get("workspace_name")
         self._log(f"DEBUG: Organize Playlist: {do_organize}, WS Name: {ws_name}, WS ID: {workspace_id}", "info")
-        
+
         if do_organize and workspace_id and ws_name:
              # If it's a workspace/playlist download, we use the name as subfolder
             subfolder_name = sanitize_filename(ws_name)
@@ -283,7 +369,7 @@ class SunoDownloader:
         try:
             self.signals.status_changed.emit("Fetching List...")
             self._log("Fetching song list...", "info")
-            
+
             # Build UUID cache for duplicate detection.
             if self.config.get("force_rescan"):
                 self._log("Force Rescan Active: Skipping dedupe cache.", "warning")
@@ -299,11 +385,11 @@ class SunoDownloader:
 
             # Preload summary buckets (only meaningful in scan_only mode).
             preload_summary = {"new": [], "on_disk": [], "missing_on_disk": [], "trashed": []}
-            
+
             consecutive_skipped_pages = 0
             # Adaptive threshold: scale with library size
             # For small libraries (< 100 songs): 2 pages
-            # For medium libraries (100-1000 songs): 5 pages  
+            # For medium libraries (100-1000 songs): 5 pages
             # For large libraries (1000-5000 songs): 10 pages
             # For very large libraries (> 5000 songs): 20 pages
             library_size = len(uuid_cache)
@@ -315,13 +401,13 @@ class SunoDownloader:
                 smart_resume_threshold = 10
             else:
                 smart_resume_threshold = 20
-            
+
             # Track if we've found ANY new songs yet (to avoid stopping on initial already-downloaded pages)
             found_new_songs = False
-            
+
             if self.config.get("smart_resume"):
                 self._log(f"Smart Resume: Will stop after {smart_resume_threshold} consecutive pages with no new songs (library size: {library_size} songs).", "info")
-            
+
             with ThreadPoolExecutor(max_workers=3) as executor:
                 while not self.is_stopped():
                     if max_pages > 0 and page_num > max_pages:
@@ -342,8 +428,8 @@ class SunoDownloader:
                                 url = f"{base_url}{page_num}"
                             # Increased timeout to 30s and added retry loop
                             r = requests.get(url, headers=headers, timeout=30)
-                            
-                            
+
+
                             # 404 Fallback Logic: Project -> Playlist
                             if r.status_code == 404:
                                 if "/api/project/" in base_url:
@@ -351,7 +437,7 @@ class SunoDownloader:
                                         self._log("Default Project endpoint 404. Falling back to Main Library (Feed).", "warning")
                                         base_url = "https://studio-api.prod.suno.com/api/feed/"
                                         continue
-                                    
+
                                     self._log("Project endpoint 404. Switching to Playlist endpoint...", "warning")
                                     # Regex replace /api/project/ID -> /api/playlist/ID/
                                     base_url = re.sub(r"/api/project/([^?&]+)", r"/api/playlist/\1/", base_url)
@@ -380,19 +466,19 @@ class SunoDownloader:
                                     if "project_clips" in data and data["project_clips"]: has_items = True
                                     elif "clips" in data and data["clips"]: has_items = True
                                 elif isinstance(data, list) and data: has_items = True
-                                
+
                                 if not has_items:
                                     self._log("Default Project is empty. Assuming user wants Main Library. switching to Feed...", "warning")
                                     base_url = "https://studio-api.prod.suno.com/api/feed/"
                                     # We need to restart the request with the new URL
                                     continue
-                            
+
                             # Log response structure for playlists
                             if is_playlist:
                                 self._log(f"Playlist API Response Keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}", "info")
-                            
+
                             # If successful, break the retry loop
-                            break 
+                            break
                         except Exception as exc:
                             if attempt < max_retries - 1:
                                 self._log(f"Connection error on page {page_num} (Attempt {attempt+1}/{max_retries}): {exc}. Retrying...", "warning")
@@ -403,20 +489,20 @@ class SunoDownloader:
                                 self.signals.error_occurred.emit(f"Network error on page {page_num}: {exc}")
                                 success = False
                                 break # Break retry loop
-                    
+
                     if not success:
                         break # Break page loop
 
                     # Handle different API response structures and robustly unwrap clips
                     # 1. Project/Workspace: {"project_clips": [{"clip": {...}}, ...]}
                     # 2. Main Library: [{"id": ...}, ...] or {"clips": [...]}
-                    
+
                     # --- WORKSPACE PARSING LOGIC ---
-                    
+
                     # 1. Identify the list source
                     raw_data = data
                     raw_items = []
-                    
+
                     if isinstance(raw_data, dict):
                         # Try various possible keys for playlist/workspace data
                         if "project_clips" in raw_data:
@@ -443,7 +529,7 @@ class SunoDownloader:
                     elif isinstance(raw_data, list):
                         # Direct list of items
                         raw_items = raw_data
-                    
+
                     if is_playlist:
                         self._log(f"Parsed {len(raw_items)} items from playlist response", "info")
                         if len(raw_items) == 0:
@@ -457,36 +543,17 @@ class SunoDownloader:
 
                     filtered_clips = []
 
-                    # 2. Setup Filter Flags from UI
-                    filter_liked_only = filters.get("liked", False)
-                    filter_disliked_only = filters.get("disliked", False) # NEW
-                    
-                    filter_hide_stems = filters.get("hide_gen_stems", False)
-                    filter_exclude_trash = not filters.get("trashed", False)
-                    filter_hide_disliked = filters.get("hide_disliked", False)
-                    
-                    filter_public_only = filters.get("is_public", False)
-                    filter_private_only = filters.get("is_private", False) # NEW
-                    
-                    filter_full_song = filters.get("full_song", False) # NEW
-                    filter_is_cover = filters.get("is_cover", False) # NEW
-                    filter_is_persona = filters.get("is_persona", False) # NEW
-                    
-                    filter_hide_studio = filters.get("hide_studio_clips", False)
-                    filter_type = filters.get("type", "all")
-                    search_text = filters.get("search_text", "").strip().lower()
-
-                    # Override: If Stems Only is active, disable Hide Stems
-                    if self.config.get("stems_only"):
-                        filter_hide_stems = False
+                    # Per-song filtering is delegated to song_passes_filters()
+                    # (a pure, unit-tested predicate). The old inline filter-flag
+                    # block lived here; it was removed when the logic was extracted.
 
                     if self.is_stopped(): break
 
                     skipped_count = 0
-                    
-                    for index, item in enumerate(raw_items):
+
+                    for item in raw_items:
                         if self.is_stopped(): break
-                        
+
                         # A. UNWRAP STRATEGY
                         if isinstance(item, dict) and "clip" in item:
                             song_data = item["clip"]
@@ -499,120 +566,21 @@ class SunoDownloader:
                         # Ghost Song Fix (Design Doc Item 1)
                         if not song_data.get("id"):
                              continue
-                             
+
                         title = song_data.get("title", "") or "Unknown Title"
                         if title == "Unknown Title" and not song_data.get("id"):
                              continue
-                        
-                        # Robust Liked Check
-                        is_liked_bool = song_data.get("is_liked", False)
-                        reaction = song_data.get("reaction", {}) 
-                        if reaction is None: reaction = {} 
-                        reaction_type = reaction.get("reaction_type", "")
-                        vote = song_data.get("vote", "") or song_data.get("metadata", {}).get("vote", "")
-                        
-                        # It is liked if Boolean is True OR Reaction is 'L' OR Vote is 'up'
-                        is_liked = is_liked_bool or (reaction_type == "L") or (vote == "up")
-                        
-                        # Disliked Check
-                        is_disliked = (reaction_type == "D") or (vote == "down")
-
-                        # Extract metadata for filters
-                        metadata = song_data.get("metadata", {}) or {}
-                        if metadata is None: metadata = {}
-                        clip_type = metadata.get("type", "")
 
                         is_stem = self._is_stem(song_data)
 
-                        # Trash Check
-                        is_trashed = song_data.get("is_trashed", False)
-                        
-                        # Public Check
-                        is_public = song_data.get("is_public", False)
-                        
-                        # Audio URL
-                        audio_url = song_data.get("audio_url")
-
-                        # D. APPLY FILTERS
-                        
-                        # 0. Audio URL (Critical)
-                        # Relax this for Covers or non-audio items if needed, but usually we need audio.
-                        if not audio_url and not scan_only:
+                        if not song_passes_filters(
+                            song_data,
+                            filters,
+                            stems_only=bool(self.config.get("stems_only")),
+                            scan_only=scan_only,
+                            is_stem=is_stem,
+                        ):
                             continue
-
-                        # 1. Trash Filter
-                        if filter_exclude_trash and is_trashed:
-                            continue
-
-                        # 2. Stem Filter
-                        if filter_hide_stems and is_stem:
-                            continue
-
-                        # 2b. Stems Only Filter
-                        if self.config.get("stems_only") and not is_stem:
-                            continue
-
-                        # 3. Liked Filter
-                        if filter_liked_only and not is_liked:
-                             continue
-                        
-                        # 3b. Disliked Filter (NEW)
-                        if filter_disliked_only and not is_disliked:
-                             continue
-
-                        # 4. Hide Disliked
-                        # Only apply if we aren't explicitly looking for disliked songs
-                        if filter_hide_disliked and not filter_disliked_only:
-                            if is_disliked:
-                                continue
-
-                        # 5. Public Only
-                        if filter_public_only and not is_public:
-                            continue
-                        
-                        # 5b. Private Only (NEW)
-                        if filter_private_only and is_public:
-                             continue
-                             
-                        # 6. Hide Studio
-                        if filter_hide_studio and clip_type == "studio_clip":
-                            continue
-                            
-                        # 7. Type Filter
-                        if filter_type == "uploads" and clip_type != "upload":
-                            continue
-                            
-                        # NEW FILTER LOGIC
-                        
-                        # 8. Full Song (NEW)
-                        if filter_full_song:
-                             # Heuristic: Duration > 60s OR type="concat" (which usually means Get Whole Song)
-                             duration = metadata.get("duration", 0) or 0
-                             # Also consider title not containing "(Clip)"? No.
-                             # Suno "Complete" songs often come from 'concat' type.
-                             if duration < 60 and clip_type != "concat":
-                                 continue
-                        
-                        # 9. Cover (NEW)
-                        if filter_is_cover:
-                             # Check if type is cover or prompt says cover
-                             is_cover = (clip_type == "cover")
-                             if not is_cover: continue
-
-                        # 10. Persona (NEW)
-                        if filter_is_persona:
-                             # Check for persona_id in metadata
-                             if not metadata.get("persona_id"):
-                                 continue
-
-                        # 11. Search Text
-                        if search_text:
-                            tags = metadata.get("tags", "") or ""
-                            prompt = metadata.get("prompt", "") or ""
-                            title_lower = title.lower() # Defined here
-                            searchable_content = f"{title_lower} {tags.lower()} {prompt.lower()}"
-                            if search_text not in searchable_content:
-                                continue
 
                         # Extract UUID
                         uuid = song_data.get("id")
@@ -651,7 +619,7 @@ class SunoDownloader:
                             self.signals.status_changed.emit("Skipped existing (Check Force Rescan)")
                         else:
                             self._log(f"Page {page_num}: All songs filtered out.", "info")
-                    
+
                     # Track if we found new songs on this page
                     if filtered_clips:
                         found_new_songs = True
@@ -663,14 +631,14 @@ class SunoDownloader:
                             consecutive_skipped_pages += 1
                         # If we haven't found any new songs yet, don't count skipped pages
                         # This allows scanning through already-downloaded pages at the start
-                         
+
                     # Smart Resume: Only stop if we've found new songs before, then hit threshold
                     # This ensures we scan past initial already-downloaded pages
                     if self.config.get("smart_resume") and found_new_songs and consecutive_skipped_pages >= smart_resume_threshold:
                         self._log(f"Smart Resume: Found new songs earlier, but no new songs in last {smart_resume_threshold} consecutive pages. Stopping scan.", "success")
                         success = True
                         break
-                    
+
                     if scan_only:
                         for clip in filtered_clips:
                             if self.is_stopped(): break
@@ -711,11 +679,11 @@ class SunoDownloader:
                     # For playlists, only fetch once (no pagination)
                     if is_playlist:
                         break
-                    
+
                     # Check if stopped before continuing to next page
                     if self.is_stopped():
                         break
-                    
+
                     page_num += 1
                     time.sleep(1)
         except Exception as exc:
@@ -744,27 +712,27 @@ class SunoDownloader:
     def fetch_workspaces(self, token):
         """Fetch list of workspaces (projects) using the correct endpoint with pagination."""
         headers = {"Authorization": f"Bearer {token}"}
-        
-        # Endpoint provided by user: 
+
+        # Endpoint provided by user:
         # https://studio-api.prod.suno.com/api/project/me?page=1&sort=created_at&show_trashed=false
-        
+
         all_projects = []
         page_num = 1
-        
+
         while True:
             url = f"{GEN_API_BASE}/api/project/me?page={page_num}&sort=created_at&show_trashed=false"
-            
+
             try:
                 r = requests.get(url, headers=headers, timeout=10)
                 if r.status_code == 200:
                     data = r.json()
                     # User confirmed structure: {"projects": [...]}
                     projects = data.get("projects", [])
-                    
+
                     # If no projects on this page, we've reached the end
                     if not projects:
                         break
-                    
+
                     all_projects.extend(projects)
                     page_num += 1
                 elif r.status_code == 404:
@@ -776,31 +744,31 @@ class SunoDownloader:
             except Exception as e:
                 self._log(f"Error fetching projects page {page_num}: {e}", "error")
                 break
-        
+
         return all_projects
 
     def fetch_playlists(self, token):
         """Fetch list of playlists with pagination."""
         headers = {"Authorization": f"Bearer {token}"}
         # Endpoint: /api/playlist/me?page=1&show_trashed=false&show_sharelist=false
-        
+
         all_playlists = []
         page_num = 1
-        
+
         while True:
             url = f"{GEN_API_BASE}/api/playlist/me?page={page_num}&show_trashed=false&show_sharelist=false"
-            
+
             try:
                 r = requests.get(url, headers=headers, timeout=10)
                 if r.status_code == 200:
                     data = r.json()
                     # Structure: {"playlists": [...]}
                     playlists = data.get("playlists", [])
-                    
+
                     # If no playlists on this page, we've reached the end
                     if not playlists:
                         break
-                    
+
                     all_playlists.extend(playlists)
                     page_num += 1
                 elif r.status_code == 404:
@@ -812,7 +780,7 @@ class SunoDownloader:
             except Exception as e:
                 self._log(f"Error fetching playlists page {page_num}: {e}", "error")
                 break
-        
+
         return all_playlists
 
     def download_single_song(self, clip, directory, headers, token, existing_uuids, rate_limiter, subfolder_name=None):
@@ -829,7 +797,7 @@ class SunoDownloader:
         display_name = clip.get("display_name")
         metadata = clip.get("metadata", {})
         prompt = metadata.get("prompt", "")
-        
+
         # --- REFETCH STRATEGY ---
         # If prompt is missing (common in V5/Covers list view), fetch full details
         if not prompt:
@@ -856,9 +824,9 @@ class SunoDownloader:
             self._log(f"Lyrics found ({len(lyrics)} chars). Start: {lyrics[:30]}...", "info")
         else:
             self._log(f"No lyrics found for {title} in metadata", "warning")
-        
+
         thumb_data = self.fetch_thumbnail_bytes(image_url) if image_url else None
-        
+
         # Notify start
         self.signals.song_started.emit(uuid, title, thumb_data, metadata)
 
@@ -869,7 +837,7 @@ class SunoDownloader:
             return
 
         target_dir = directory
-        
+
         if subfolder_name:
             try:
                 target_dir = os.path.join(directory, subfolder_name)
@@ -920,7 +888,7 @@ class SunoDownloader:
                     r_dl.raise_for_status()
                     total_size = int(r_dl.headers.get('content-length', 0))
                     downloaded = 0
-                    
+
                     with open(out_path, "wb") as f:
                         for chunk in r_dl.iter_content(chunk_size=8192):
                             if self.is_stopped():
@@ -937,7 +905,7 @@ class SunoDownloader:
                     raise Exception(f"Downloaded file too small ({downloaded} bytes)")
                 if total_size > 0 and downloaded < total_size:
                     raise Exception(f"Incomplete download ({downloaded}/{total_size} bytes)")
-                
+
                 break
             except Exception as exc:
                 # Cleanup failed file
@@ -945,7 +913,7 @@ class SunoDownloader:
                     try:
                         os.remove(out_path)
                     except: pass
-                
+
                 if attempt < max_retries - 1:
                     self._log(f"  Retry {attempt+1}/{max_retries}: {exc}", "info")
                     time.sleep(2)
@@ -959,7 +927,7 @@ class SunoDownloader:
                 txt_path = os.path.splitext(out_path)[0] + ".txt"
                 with open(txt_path, "w", encoding="utf-8") as f:
                     f.write(lyrics)
-            
+
             # Always embed metadata if enabled, or at least embed lyrics
             if self.config.get("embed_metadata"):
                 # Full metadata embedding
@@ -985,7 +953,7 @@ class SunoDownloader:
                         'comment': False, 'lyrics': True, 'album_art': False, 'uuid': False
                     }
                 )
-            
+
             existing_uuids.add(uuid)
             if self.manifest is not None:
                 from core.manifest import LOCATION_DOWNLOADS
@@ -1006,7 +974,7 @@ class SunoDownloader:
                     if not os.path.exists(jpg_path):
                         with open(jpg_path, "wb") as f_img:
                             f_img.write(thumb_data)
-                    
+
                     # 2. Save as cover.jpg (Folder View)
                     cover_path = os.path.join(os.path.dirname(out_path), "cover.jpg")
                     if not os.path.exists(cover_path):
@@ -1014,7 +982,7 @@ class SunoDownloader:
                             f_cov.write(thumb_data)
                 except Exception as ex:
                     self._log(f"Failed to save artwork file: {ex}", "warning")
-            
+
             self._log(f"✓ {title}", "success", thumbnail_data=thumb_data)
             self.signals.song_finished.emit(uuid, True, out_path)
         except Exception as exc:
@@ -1028,12 +996,12 @@ class SunoDownloader:
         clip_type = metadata.get("type", "")
         top_type = song_data.get("type", "")
         title = song_data.get("title", "") or ""
-        
+
         title_lower = title.lower()
         is_stem_title = any(ind in title_lower for ind in self.STEM_INDICATORS)
-        
-        return (clip_type in ["gen_stem", "stem"] or 
-                "stem" in top_type or 
+
+        return (clip_type in ["gen_stem", "stem"] or
+                "stem" in top_type or
                 is_stem_title)
 
     def _get_base_title(self, title):
@@ -1156,6 +1124,7 @@ class SunoDownloader:
     def fetch_thumbnail_bytes(self, url, size=40):
         try:
             from io import BytesIO
+
             from PIL import Image
             resp = requests.get(url, timeout=8)
             resp.raise_for_status()

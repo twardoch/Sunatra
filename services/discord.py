@@ -1,5 +1,7 @@
-from pypresence import Presence
 import time
+
+from pypresence import Presence
+
 
 class DiscordRPC:
     def __init__(self, client_id='1451837816131686472'):
@@ -44,7 +46,6 @@ class DiscordRPC:
                 )
             else:
                 # Calculate end time for countdown
-                start = None
                 end = None
                 if duration and current_time is not None:
                      # Discord expects end timestamp
@@ -56,13 +57,13 @@ class DiscordRPC:
                     state=artist_str,
                     end=end,
                     large_image="suno_logo",
-                    large_text="SunoSync",
+                    large_text="Sunatra",
                     small_image="play",
                     small_text="Playing"
                 )
         except Exception as e:
             print(f"Failed to update Discord status: {e}")
-            # Do not set self.connected = False immediately on update error, 
+            # Do not set self.connected = False immediately on update error,
             # maybe it's just a payload issue.
             # But if it's a pipe error, it will fail next time too.
             if "Pipe" in str(e) or "Connection" in str(e):

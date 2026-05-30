@@ -1,14 +1,14 @@
 """
-SunoSync Token Server — Local HTTP server for Chrome extension communication.
+Sunatra Token Server — Local HTTP server for browser extension communication.
 
-Listens on 127.0.0.1:38945 for token pushes from the SunoSync Chrome Extension.
+Listens on 127.0.0.1:38945 for token pushes from the Sunatra browser extension.
 Thread-safe, non-blocking, and integrates with the main app via callbacks.
 """
 
 import json
-import threading
 import logging
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class _TokenHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         """GET /status — Health check endpoint."""
         if self.path == "/status":
-            self._send_json(200, {"running": True, "app": "SunoSync"})
+            self._send_json(200, {"running": True, "app": "Sunatra"})
         else:
             self._send_json(404, {"error": "Not found"})
 
@@ -85,7 +85,7 @@ class _TokenHandler(BaseHTTPRequestHandler):
                         callback(token)
                     except Exception as e:
                         logger.error("Token callback error: %s", e)
-                
+
                 logger.info("Token received from Chrome extension (%d chars) [NEW]", len(token))
             else:
                 logger.debug("Token received (unchanged)")
@@ -102,8 +102,8 @@ class _TokenHandler(BaseHTTPRequestHandler):
 class TokenServer:
     """
     Local HTTP server that receives Suno authentication tokens
-    from the SunoSync Chrome Extension.
-    
+    from the Sunatra browser extension.
+
     Usage:
         server = TokenServer()
         server.on_token(lambda token: print("Got token:", token[:20] + "..."))
@@ -129,7 +129,7 @@ class TokenServer:
     def on_token(self, callback):
         """
         Register a callback to be called when a new token is received.
-        
+
         Args:
             callback: A callable that takes a single string argument (the token).
         """
@@ -166,7 +166,7 @@ class TokenServer:
             self._thread = threading.Thread(
                 target=self._httpd.serve_forever,
                 daemon=True,
-                name="SunoSync-TokenServer"
+                name="Sunatra-TokenServer"
             )
             self._thread.start()
             self._running = True

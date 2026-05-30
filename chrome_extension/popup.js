@@ -1,5 +1,5 @@
 /**
- * SunoSync Token Helper — Popup Script
+ * Sunatra Token Helper — Popup Script
  * 
  * Reads state from the background service worker and updates the popup UI.
  */

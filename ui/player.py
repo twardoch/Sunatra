@@ -1,10 +1,11 @@
-import tkinter as tk
-import customtkinter as ctk
-import os
 import json
+import os
 import random
 import time
+import tkinter as tk
 from threading import Thread
+
+import customtkinter as ctk
 
 # Try VLC
 try:
@@ -15,7 +16,7 @@ except (ImportError, OSError):
 
 # Discord RPC disabled — the bundled client_id belongs to someone else's
 # Discord application. Re-enable by restoring this import and the constructor
-# call below once a SunoSync-owned Discord app ID is in place.
+# call below once a Sunatra-owned Discord app ID is in place.
 # from services.discord import DiscordRPC
 
 
@@ -32,10 +33,10 @@ class _NullDiscord:
 
 class PlayerWidget(ctk.CTkFrame):
     """Audio player widget with playback controls."""
-    
+
     def __init__(self, parent, bg_color="#18181b", **kwargs):
         super().__init__(parent, fg_color=bg_color, corner_radius=0, height=90, **kwargs)
-        
+
         # VLC Setup
         # libvlc writes plugin-loader chatter (stale plugins.dat, missing optional
         # transitive DLLs like libsrt/libx265) directly to FD 2, bypassing Python's
@@ -78,7 +79,7 @@ class PlayerWidget(ctk.CTkFrame):
                         os.close(devnull_fd)
                     except OSError:
                         pass
-        
+
         # Discord RPC disabled — see top-of-file note. Using a no-op stub so
         # existing call sites (update_presence/close) keep working.
         self.discord = _NullDiscord()
@@ -97,13 +98,13 @@ class PlayerWidget(ctk.CTkFrame):
         self.shuffle_mode = False
         self.repeat_mode = 0 # 0=Off, 1=All, 2=One
         self.mini_mode_callback = None
-        
+
         # Album art cache
         import tempfile
-        self.art_cache_dir = os.path.join(tempfile.gettempdir(), "sunosync_art")
+        self.art_cache_dir = os.path.join(tempfile.gettempdir(), "sunatra_art")
         os.makedirs(self.art_cache_dir, exist_ok=True)
         self.current_art_image = None
-        
+
         # UI
         self._create_widgets()
 
@@ -118,11 +119,11 @@ class PlayerWidget(ctk.CTkFrame):
     def add_track_listener(self, callback):
         if callback not in self._track_listeners:
             self._track_listeners.append(callback)
-            
+
     def remove_track_listener(self, callback):
         if callback in self._track_listeners:
             self._track_listeners.remove(callback)
-            
+
     def _notify_track_listeners(self, song_data):
         for cb in self._track_listeners:
             try:
@@ -284,7 +285,7 @@ class PlayerWidget(ctk.CTkFrame):
     def _load_tags(self):
         if self.tags_file and os.path.exists(self.tags_file):
             try:
-                with open(self.tags_file, 'r', encoding='utf-8') as f:
+                with open(self.tags_file, encoding='utf-8') as f:
                     self.tags = json.load(f)
             except:
                 self.tags = {}
@@ -300,11 +301,11 @@ class PlayerWidget(ctk.CTkFrame):
 
     def set_library_tab(self, tab):
         self.library_tab = tab
-    
+
     def set_lyrics_panel(self, panel):
         """Set the lyrics panel reference."""
         self.lyrics_panel = panel
-    
+
     def toggle_lyrics(self):
         """Toggle lyrics panel visibility."""
         if self.lyrics_panel:
@@ -312,11 +313,11 @@ class PlayerWidget(ctk.CTkFrame):
 
     def set_mini_mode_callback(self, callback):
         self.mini_mode_callback = callback
-        
+
     def toggle_mini_mode(self):
         if self.mini_mode_callback:
             self.mini_mode_callback()
-            
+
     def set_mini_btn_icon(self, is_mini):
         self.mini_btn.configure(text="⤡" if is_mini else "⤢")
         self.mini_is_active = is_mini
@@ -328,51 +329,51 @@ class PlayerWidget(ctk.CTkFrame):
     def enable_mini_layout(self):
         # 1. Container Style (600x80)
         self.configure(border_width=1, border_color="#333333")
-        
+
         # Reset Packing to ensure order
         self.bar.pack_forget()
         self.seeker.pack_forget()
-        
+
         # 2. Seeker (Bottom)
-        self.seeker.configure(height=4, button_length=0) 
+        self.seeker.configure(height=4, button_length=0)
         self.seeker.pack(side="bottom", fill="x", padx=0, pady=0)
-        
+
         # 3. Bar Frame (Top)
         self.bar.pack(side="top", fill="both", expand=True, padx=0, pady=(0, 4))
-        
+
         # 4. Grid Setup
         self.bar.grid_columnconfigure(0, weight=1)
         self.bar.grid_columnconfigure(1, weight=0)
         self.bar.grid_columnconfigure(2, weight=0)
-        
+
         # 5. Left Section (Col 0)
         self.info_frame.grid_configure(row=0, column=0, sticky="ew", padx=15)
         # Ensure text labels are visible
         self.album_art_label.pack_forget() # Hide art
-        self.title_label.configure(font=("Inter", 13, "bold"), text_color="white") 
-        self.artist_label.configure(font=("Inter", 11), text_color="gray") 
-        
+        self.title_label.configure(font=("Inter", 13, "bold"), text_color="white")
+        self.artist_label.configure(font=("Inter", 11), text_color="gray")
+
         # 6. Center Section (Col 1)
         self.controls_frame.grid_configure(row=0, column=1)
         self.shuffle_btn.pack_forget()
         self.repeat_btn.pack_forget()
-        
+
         self.play_btn.configure(width=40, height=40, corner_radius=20, fg_color="#8b5cf6")
         self.prev_btn.configure(width=30, height=30, fg_color="transparent")
         self.next_btn.configure(width=30, height=30, fg_color="transparent")
-        
+
         # 7. Right Section (Col 2)
         self.right_frame.grid_configure(row=0, column=2, sticky="e", padx=10)
-        
+
         # Clear Right Layout
         for widget in self.right_frame.winfo_children():
             widget.pack_forget()
-            
+
         # Add Volume and Expand Only
         self.mini_btn.pack(side="right", padx=(5, 0)) # Expand button
         self.volume_slider.configure(width=80)
         self.volume_slider.pack(side="right", padx=5) # Volume Slider
-        
+
         # Bind Dragging
         bind_list = [self, self.bar, self.info_frame, self.text_frame, self.controls_frame, self.right_frame, self.title_label, self.artist_label]
         for widget in bind_list:
@@ -381,38 +382,38 @@ class PlayerWidget(ctk.CTkFrame):
 
     def disable_mini_layout(self):
         self.configure(border_width=0)
-        
+
         # Restore Weights
         self.bar.grid_columnconfigure(0, weight=1)
         self.bar.grid_columnconfigure(1, weight=0)
         self.bar.grid_columnconfigure(2, weight=0)
-        
+
         # Restore Seeker
         self.seeker.pack_forget()
         self.seeker.pack(side="top", fill="x", padx=0, pady=(0, 5))
-        self.seeker.configure(height=16) # Restore default? 
-        
+        self.seeker.configure(height=16) # Restore default?
+
         # Restore Bar
         self.bar.pack_configure(padx=20, pady=(0, 10))
-        
+
         # Restore Left Info
         self.info_frame.grid_configure(padx=(0, 5))
         self.album_art_label.pack(side="left", padx=(0, 10), before=self.text_frame)
         self.title_label.configure(font=("Inter", 14, "bold"))
         self.artist_label.configure(font=("Inter", 12))
-        
+
         # Restore Controls
         self.play_btn.configure(width=42, height=42, corner_radius=21)
         self.shuffle_btn.pack(side="left", padx=2, before=self.prev_btn)
         self.repeat_btn.pack(side="left", padx=2, after=self.next_btn)
-        
+
         # Restore Right Zone (Like, Trash, Loop, Star, Time, etc)
         for widget in self.right_frame.winfo_children():
             widget.pack_forget()
-        
+
         # Re-pack Standard Order (side=left)
         # Tags (Like/Trash/Star), Time, Mini, Lyrics, VolIcon, VolSlider
-        for tag, (btn, _) in self.tag_btns.items():
+        for _tag, (btn, _) in self.tag_btns.items():
              btn.pack(side="left", padx=2)
         self.time_label.pack(side="left", padx=15)
         self.mini_btn.pack(side="left", padx=(0, 5))
@@ -420,7 +421,7 @@ class PlayerWidget(ctk.CTkFrame):
         self.vol_icon.pack(side="left")
         self.volume_slider.configure(width=80)
         self.volume_slider.pack(side="left", padx=5)
-        
+
         # Unbind Dragging
         bind_list = [self, self.bar, self.info_frame, self.text_frame, self.controls_frame, self.right_frame, self.title_label, self.artist_label]
         for widget in bind_list:
@@ -439,7 +440,7 @@ class PlayerWidget(ctk.CTkFrame):
             y = self.winfo_toplevel().winfo_y() + deltay
             self.winfo_toplevel().geometry(f"+{x}+{y}")
         except: pass
-            
+
 
 
     def set_playlist(self, songs, start_index=0):
@@ -450,22 +451,22 @@ class PlayerWidget(ctk.CTkFrame):
 
     def play_song_at_index(self, index):
         if not 0 <= index < len(self.playlist): return
-        
+
         self.current_index = index
         song = self.playlist[index]
         self.current_song_data = song  # Store full metadata
         filepath = os.path.normpath(song['filepath'])
-        
+
         if self.play_file(filepath):
             self.update_tag_ui(song.get('id'))
-            
+
             # Update album art
             self.update_album_art(song)
-            
+
             # Update lyrics panel if visible
             if self.lyrics_panel and self.lyrics_panel.is_visible:
                 self.lyrics_panel.update_from_song(song)
-            
+
             self.after(100, lambda: self.event_generate("<<TrackChanged>>"))
             self._notify_track_listeners(song)
 
@@ -473,15 +474,15 @@ class PlayerWidget(ctk.CTkFrame):
         """Fetch and display album art for the current song."""
         image_url = song_data.get('image_url')
         song_id = song_data.get('id', 'unknown')
-        
+
         if not image_url:
             # Show placeholder
             self.album_art_label.configure(image=None, text="🎵", font=("Inter", 24))
             return
-        
+
         # Check cache first
         cache_path = os.path.join(self.art_cache_dir, f"{song_id}.jpg")
-        
+
         if os.path.exists(cache_path):
             # Load from cache
             self._display_album_art(cache_path)
@@ -508,7 +509,7 @@ class PlayerWidget(ctk.CTkFrame):
             from PIL import Image
             img = Image.open(image_path)
             img = img.resize((60, 60), Image.Resampling.LANCZOS)
-            
+
             # Convert to CTkImage
             ctk_image = ctk.CTkImage(light_image=img, dark_image=img, size=(60, 60))
             self.current_art_image = ctk_image  # Keep reference
@@ -520,22 +521,22 @@ class PlayerWidget(ctk.CTkFrame):
     def play_file(self, filepath):
         if not VLC_AVAILABLE or not self.player:
             return False
-            
+
         if not os.path.exists(filepath):
             return False
-            
+
         self.current_file = filepath
         try:
             if self.is_playing:
                 self.player.stop()
-            
+
             media = self.instance.media_new(filepath)
             self.player.set_media(media)
             self.player.play()
-            
+
             self.is_playing = True
             self.play_btn.configure(text="⏸")
-            
+
             # Wait for length
             for _ in range(20):
                 time.sleep(0.05)
@@ -544,13 +545,13 @@ class PlayerWidget(ctk.CTkFrame):
                     break
             else:
                 self.duration = 0
-                
+
             filename = os.path.basename(filepath)
             title = os.path.splitext(filename)[0].replace('_', ' ')
             self.title_label.configure(text=title[:40]) # Truncate
             artist = os.path.dirname(filepath).split(os.sep)[-1] # Use folder name as artist roughly
             self.artist_label.configure(text=artist)
-            
+
             # Update Discord
             self.discord.update_presence(title, artist, self.duration, 0, False)
 
@@ -561,11 +562,11 @@ class PlayerWidget(ctk.CTkFrame):
 
     def toggle_playback(self):
         if not self.player or not self.current_file: return
-        
+
         filename = os.path.basename(self.current_file)
         title = os.path.splitext(filename)[0].replace('_', ' ')
         artist = os.path.dirname(self.current_file).split(os.sep)[-1]
-        
+
         if self.is_playing:
             self.player.pause()
             self.is_playing = False
@@ -575,13 +576,13 @@ class PlayerWidget(ctk.CTkFrame):
             self.player.play()
             self.is_playing = True
             self.play_btn.configure(text="⏸")
-            
+
             # Get current pos
             pos = self.player.get_position()
             current_time = 0
             if pos >= 0:
                 current_time = pos * self.duration
-                
+
             self.discord.update_presence(title, artist, self.duration, current_time, False)
 
     def on_seek(self, value):
@@ -604,17 +605,17 @@ class PlayerWidget(ctk.CTkFrame):
 
     def next_song(self):
         if not self.playlist: return
-        
+
         new_index = self.current_index + 1
         if self.shuffle_mode:
             new_index = random.randint(0, len(self.playlist) - 1)
         elif self.repeat_mode == 2:
             new_index = self.current_index
-        
+
         if new_index >= len(self.playlist):
             if self.repeat_mode == 1: new_index = 0
             else: return # Stop
-            
+
         self.play_song_at_index(new_index)
 
     def previous_song(self):
@@ -627,19 +628,19 @@ class PlayerWidget(ctk.CTkFrame):
         uuid = None
         if self.current_index >= 0:
             uuid = self.playlist[self.current_index].get('id')
-            
+
         if not uuid and self.library_tab:
              path = self.library_tab.get_selected_filepath()
              if path: uuid = path # Fallback to path as ID if needed
-        
+
         if not uuid: return
-        
+
         # Tag logic
         if self.tags.get(uuid) == tag:
             del self.tags[uuid]
         else:
             self.tags[uuid] = tag
-            
+
         self._save_tags()
         self.update_tag_ui(uuid)
         self.event_generate("<<TagsUpdated>>")

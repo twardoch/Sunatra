@@ -6,7 +6,6 @@ blocked from re-download until restored.
 
 import customtkinter as ctk
 
-
 PAGE_SIZE = 50
 
 

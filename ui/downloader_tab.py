@@ -1,18 +1,20 @@
 import os
+import queue
 import sys
 import threading
-import queue
-import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
-from PIL import Image, ImageTk
+
+import customtkinter as ctk
+
+from core.downloader import SunoDownloader
 
 # Helpers and Widgets
 from core.utils import truncate_path
-from ui.widgets import SongCard, WorkspaceBrowser, FilterPopup, EmptyStateWidget, FilterBar, FlowLayout, Dropdown
 from ui.layouts import create_token_dialog
-from core.downloader import SunoDownloader
 from ui.tooltip import ToolTip
+from ui.widgets import Dropdown, EmptyStateWidget, FilterBar, FlowLayout, SongCard
+
 
 # Stdout Capture for Debug Log
 class StdoutCapture:
@@ -73,7 +75,7 @@ class DownloaderTab(ctk.CTkFrame):
         # Preload summary state (populated when downloader emits preload_summary).
         self._preload_summary = None
         self._preload_summary_widget = None
-        
+
         # State
         self.gui_queue = queue.Queue()
         self.queue_items = {} # uuid -> SongCard
@@ -82,26 +84,26 @@ class DownloaderTab(ctk.CTkFrame):
         self.filter_settings = {}
         self.debug_logs = []
         self.debug_window = None
-        
+
         # Theme Attributes
         self.card_bg = "#181818"
-        
+
         # Debug Log Capture
         self._stdout_capture = StdoutCapture(self)
         self._original_stdout = sys.stdout
         sys.stdout = self._stdout_capture
-        
+
         # UI Setup
         self._setup_layout()
         self.load_config()
-        
+
         # Start GUI Loop
         self.after(100, self._process_gui_queue)
-        
-        
+
+
         # Dropdowns
         self._setup_dropdowns()
-        
+
         # Initial checks
         self.after(500, self.check_initial_path)
 
@@ -109,22 +111,22 @@ class DownloaderTab(ctk.CTkFrame):
         # --- Root Layout ---
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(3, weight=1) # Row 3 is now the list
-        
+
         # --- 1. Compact Header (Flow Layout) ---
         # "Combine Connection, Scan Settings, and Target into a single unified header"
-        
+
         self.header_frame = ctk.CTkFrame(self, fg_color="#0f172a", corner_radius=12, border_width=1, border_color="#1e293b")
         self.header_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
-        
+
         # We use FlowLayout inside this styled frame
         self.header_flow = FlowLayout(self.header_frame)
         self.header_flow.pack(fill="x", expand=True, padx=5, pady=5)
-        
+
         # Helper for mini-sections
         def add_section_label(parent, text):
             l = ctk.CTkLabel(parent, text=text, font=("Inter", 11, "bold"), text_color="#94a3b8")
             l.pack(side="left", padx=(0, 8))
-            
+
         def create_group_frame():
             f = ctk.CTkFrame(self.header_flow, fg_color="transparent")
             return f
@@ -132,30 +134,30 @@ class DownloaderTab(ctk.CTkFrame):
         # --- Group 1: Connection ---
         conn_group = create_group_frame()
         add_section_label(conn_group, "Suno Cookie:")
-        
+
         self.token_var = ctk.StringVar()
         self.token_entry = ctk.CTkEntry(conn_group, textvariable=self.token_var, show="●", width=120, height=24,
                                          fg_color="#1e293b", border_color="#334155",
                                          text_color="#FFFFFF", font=("Inter", 11))
         self.token_entry.pack(side="left", padx=(0, 5))
-        
-        ctk.CTkButton(conn_group, text="Get", command=self.get_token_logic, width=40, height=24, 
+
+        ctk.CTkButton(conn_group, text="Get", command=self.get_token_logic, width=40, height=24,
                       fg_color="#334155", hover_color="#475569", font=("Inter", 11),
                       corner_radius=6).pack(side="left")
-                      
+
         self.header_flow.add_widget(conn_group, padx=8, pady=4)
-        
+
         # Separator
         sep1 = ctk.CTkFrame(self.header_flow, width=1, height=20, fg_color="#334155")
         self.header_flow.add_widget(sep1, padx=4, pady=4)
 
         # --- Group 2: Settings ---
         settings_group = create_group_frame()
-        
+
         self.rate_limit_var = ctk.DoubleVar(value=0.5)
         self.start_page_var = ctk.IntVar(value=1)
         self.max_pages_var = ctk.IntVar(value=0)
-        
+
         # Auto-save triggers
         self.rate_limit_var.trace_add("write", lambda *args: self.save_config())
         self.start_page_var.trace_add("write", lambda *args: self.save_config())
@@ -171,7 +173,7 @@ class DownloaderTab(ctk.CTkFrame):
         add_mini_input("Speed:", self.rate_limit_var, 35, "Delay (s)")
         add_mini_input("Page:", self.start_page_var, 35, "Start Page")
         add_mini_input("Limit:", self.max_pages_var, 35, "Max Pages (0=All)")
-        
+
         self.header_flow.add_widget(settings_group, padx=8, pady=4)
 
         # Separator
@@ -180,7 +182,7 @@ class DownloaderTab(ctk.CTkFrame):
 
         # --- Group 3: Target ---
         target_group = create_group_frame()
-        
+
         self.workspace_btn = ctk.CTkButton(target_group, text="Workspaces", command=self.open_workspaces, height=24, width=90,
                                            corner_radius=12, fg_color="#334155", hover_color="#475569",
                                            text_color="#e2e8f0", font=("Inter", 11))
@@ -192,43 +194,43 @@ class DownloaderTab(ctk.CTkFrame):
         self.playlist_btn.pack(side="left")
 
         self.header_flow.add_widget(target_group, padx=8, pady=4)
-        
+
         # --- 2. Filter Bar (Row 1) ---
         # Keep existing container but reduce padding slightly
-        self.filter_container = ctk.CTkFrame(self, fg_color="#0f172a", corner_radius=12, border_width=1, border_color="#1e293b") 
+        self.filter_container = ctk.CTkFrame(self, fg_color="#0f172a", corner_radius=12, border_width=1, border_color="#1e293b")
         self.filter_container.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
-        
+
         self.filter_bar = FilterBar(self.filter_container, self.filter_settings, self.on_filters_applied)
         self.filter_bar.pack(fill="x", padx=10, pady=10) # Reduced padding
-        
+
         # --- 3. Action Bar (Row 2) ---
         action_frame = ctk.CTkFrame(self, fg_color="transparent")
         action_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(0, 10))
-        
+
         # Use FlowLayout for actions too for safety on very small screens?
         # Or just kept simple pack. The user asked for "flex flex-wrap gap-2"
-        
+
         # Let's use FlowLayout for buttons to ensure wrapping if needed
         btn_flow = FlowLayout(action_frame)
         btn_flow.pack(fill="x")
-        
-        self.preload_btn = ctk.CTkButton(btn_flow, text="Preload List", command=self.preload_songs, 
-                                         height=32, width=100, fg_color="transparent", border_width=1, border_color="#555", 
+
+        self.preload_btn = ctk.CTkButton(btn_flow, text="Preload List", command=self.preload_songs,
+                                         height=32, width=100, fg_color="transparent", border_width=1, border_color="#555",
                                          text_color="#B3B3B3", hover_color="#333333", font=("Inter", 12, "bold"),
                                          corner_radius=8)
         # We need to add them to flow, but FlowLayout expects widgets to be children of it usually for packing
-        # Actually my FlowLayout implementation doesn't strictly enforce parenting if we pass widget, 
+        # Actually my FlowLayout implementation doesn't strictly enforce parenting if we pass widget,
         # but place() works relative to parent. So YES, they must be children of btn_flow.
         # Re-parenting buttons to btn_flow
-        self.preload_btn = ctk.CTkButton(btn_flow, text="Preload List", command=self.preload_songs, 
-                                          height=32, width=100, fg_color="transparent", border_width=1, border_color="#555", 
+        self.preload_btn = ctk.CTkButton(btn_flow, text="Preload List", command=self.preload_songs,
+                                          height=32, width=100, fg_color="transparent", border_width=1, border_color="#555",
                                           text_color="#B3B3B3", hover_color="#333333", font=("Inter", 12, "bold"),
                                           corner_radius=8)
-        
+
         self.start_btn = ctk.CTkButton(btn_flow, text="Start Download", command=self.start_download_thread,
                                        height=32, width=130, fg_color="#8B5CF6", hover_color="#7C3AED",
                                        font=("Inter", 12, "bold"), corner_radius=8)
-                                       
+
         self.stop_btn = ctk.CTkButton(btn_flow, text="Stop", command=self.stop_download,
                                       height=32, width=70, fg_color="#ef4444", hover_color="#b91c1c",
                                       font=("Inter", 12, "bold"), corner_radius=8)
@@ -239,20 +241,20 @@ class DownloaderTab(ctk.CTkFrame):
         btn_flow.add_widget(self.stop_btn, padx=5, pady=0)
 
         # --- 4. Song List (Row 3) ---
-        self.queue_list_frame = ctk.CTkScrollableFrame(self, fg_color="#181818") 
+        self.queue_list_frame = ctk.CTkScrollableFrame(self, fg_color="#181818")
         self.queue_list_frame.grid(row=3, column=0, sticky="nsew", padx=10, pady=5)
-        
+
         # Empty State
         self.empty_state = EmptyStateWidget(self.queue_list_frame, theme={})
         self.empty_state.pack(fill="both", expand=True, pady=40)
-        
+
         # --- 5. Footer (Row 4) ---
         footer = ctk.CTkFrame(self, fg_color="transparent")
         footer.grid(row=4, column=0, sticky="ew", padx=10, pady=(0, 10))
-        
+
         self.status_label = ctk.CTkLabel(footer, text="Ready", text_color="#10b981", font=("Inter", 11))
         self.status_label.pack(side="left")
-        
+
         self.progress_bar = ctk.CTkProgressBar(footer, height=6, progress_color="#8B5CF6")
         self.progress_bar.pack(side="right", fill="x", expand=True, padx=(10, 0))
         self.progress_bar.set(0)
@@ -262,10 +264,10 @@ class DownloaderTab(ctk.CTkFrame):
         c = self.config_manager
         # Variables were created by layout helpers
         if hasattr(self, 'token_var'): self.token_var.set(c.get("token", ""))
-        
+
         # Variables were created by layout helpers
         if hasattr(self, 'token_var'): self.token_var.set(c.get("token", ""))
-        
+
         # Shared Settings are not loaded into local vars anymore to avoid conflicts
         # They are read directly from config_manager when needed.
 
@@ -273,21 +275,21 @@ class DownloaderTab(ctk.CTkFrame):
         if hasattr(self, 'rate_limit_var'): self.rate_limit_var.set(c.get("download_delay", 0.5))
         if hasattr(self, 'max_pages_var'): self.max_pages_var.set(c.get("max_pages", 0))
         if hasattr(self, 'start_page_var'): self.start_page_var.set(c.get("start_page", 1))
-        
+
         # Filters
         self.filter_settings = c.get("filter_settings", {})
-        
+
         # Update FilterBar UI from loaded settings (Fix for persistence bug)
         if hasattr(self, 'filter_bar'):
              self.filter_bar.set_filters(self.filter_settings)
-             
+
         # Restore Workspace/Playlist Button Text
-        
-        
+
+
         # Restore Workspace/Playlist Button Text
         ws_name = self.filter_settings.get("workspace_name")
         ws_type = self.filter_settings.get("type")
-        
+
         if ws_name:
             if ws_type == "workspace":
                  if hasattr(self, 'workspace_btn'): self.workspace_btn.configure(text=truncate_path(ws_name, 12))
@@ -299,11 +301,11 @@ class DownloaderTab(ctk.CTkFrame):
         if hasattr(self, 'token_var'): c.set("token", self.token_var.get())
         # Do NOT save shared settings here (path, toggles) - let SettingsTab handle them
 
-        
+
         if hasattr(self, 'rate_limit_var'): c.set("download_delay", self.rate_limit_var.get())
         if hasattr(self, 'max_pages_var'): c.set("max_pages", self.max_pages_var.get())
         if hasattr(self, 'start_page_var'): c.set("start_page", self.start_page_var.get())
-        
+
         c.set("filter_settings", self.filter_settings)
         c.save_config()
 
@@ -323,7 +325,7 @@ class DownloaderTab(ctk.CTkFrame):
                 text_color="#10b981"
             )
         self.save_config()
-        
+
 
     def on_filters_applied(self, new_filters):
         self.filter_settings.update(new_filters)
@@ -339,19 +341,19 @@ class DownloaderTab(ctk.CTkFrame):
         # Calculate position relative to button
         x = self.workspace_btn.winfo_rootx()
         y = self.workspace_btn.winfo_rooty() + self.workspace_btn.winfo_height() + 5
-        
+
         self.ws_dropdown.show(x, y)
         self.ws_dropdown.show_loading()
-        
+
         threading.Thread(target=self._fetch_workspaces_thread, daemon=True).start()
 
     def open_playlists(self):
         x = self.playlist_btn.winfo_rootx()
         y = self.playlist_btn.winfo_rooty() + self.playlist_btn.winfo_height() + 5
-        
+
         self.pl_dropdown.show(x, y)
         self.pl_dropdown.show_loading()
-        
+
         threading.Thread(target=self._fetch_playlists_thread, daemon=True).start()
 
     def _fetch_workspaces_thread(self):
@@ -359,7 +361,7 @@ class DownloaderTab(ctk.CTkFrame):
             token = self.token_var.get()
             if not token:
                 raise Exception("No token set")
-                
+
             items = self.downloader.fetch_workspaces(token)
             # Format for dropdown
             dd_items = []
@@ -370,11 +372,12 @@ class DownloaderTab(ctk.CTkFrame):
                     "value": item,
                     "id": item.get('id')
                 })
-                
+
             self.after(0, lambda: self.ws_dropdown.set_items(dd_items))
-            
+
         except Exception as e:
-            self.after(0, lambda: self.ws_dropdown.show_error(str(e)))
+            msg = str(e)
+            self.after(0, lambda: self.ws_dropdown.show_error(msg))
 
     def _fetch_playlists_thread(self):
         try:
@@ -391,21 +394,22 @@ class DownloaderTab(ctk.CTkFrame):
                     "value": item,
                     "id": item.get("id")
                  })
-                 
+
             self.after(0, lambda: self.pl_dropdown.set_items(dd_items))
-            
+
         except Exception as e:
-           self.after(0, lambda: self.pl_dropdown.show_error(str(e)))
+           msg = str(e)
+           self.after(0, lambda: self.pl_dropdown.show_error(msg))
 
     def _on_workspace_select(self, item):
         data = item["value"]
         name = data.get("name", "Unknown")
-        
+
         self.filter_settings["workspace_id"] = data.get("id")
         self.filter_settings["workspace_name"] = name
         self.filter_settings["type"] = "workspace"
         self.save_config()
-        
+
         self.workspace_btn.configure(text=truncate_path(name, 12))
         self.playlist_btn.configure(text="Playlists") # Reset other
         self.log(f"Selected Workspace: {name}")
@@ -413,12 +417,12 @@ class DownloaderTab(ctk.CTkFrame):
     def _on_playlist_select(self, item):
         data = item["value"]
         name = data.get("name", "Unknown")
-        
+
         self.filter_settings["workspace_id"] = data.get("id") # Assuming playlists use same ID field for fetch
         self.filter_settings["workspace_name"] = name
         self.filter_settings["type"] = "playlist"
         self.save_config()
-        
+
         self.playlist_btn.configure(text=truncate_path(name, 12))
         self.workspace_btn.configure(text="Workspaces") # Reset other
         self.log(f"Selected Playlist: {name}")
@@ -579,7 +583,7 @@ class DownloaderTab(ctk.CTkFrame):
             # Wait, DownloaderTab doesn't know about cache file path directly unless passed.
             # But the user said "clear cache button to reset UUID cache". That usually means the internal memory cache or the file.
             # Let's assume they mean preventing duplicates.
-            
+
             # Reset internal preloaded songs
             self.preloaded_songs.clear()
             self.clear_queue()
@@ -589,7 +593,7 @@ class DownloaderTab(ctk.CTkFrame):
 
     def start_download_thread(self):
         self.save_config()
-        
+
         target_list = []
         if self.is_preloaded:
             # Iterate the full preloaded_songs dict (which holds every song
@@ -608,10 +612,10 @@ class DownloaderTab(ctk.CTkFrame):
 
         self.update_status("Downloading...", "busy")
         self.toggle_inputs(False)
-        
+
         if not self.is_preloaded:
             self.clear_queue()
-        
+
         # Configure downloader
         # If is_preloaded is True, we pass the specific list.
         # If False, we pass None (or empty list) which triggers full scan/download.
@@ -619,8 +623,8 @@ class DownloaderTab(ctk.CTkFrame):
         if target_list:
             self.downloader.config["target_songs"] = target_list
             # Disable page limits if we are targeting specific songs (optional, but safer)
-            # self.downloader.config["max_pages"] = 0 
-        
+            # self.downloader.config["max_pages"] = 0
+
         # Connect signals
         self.downloader.signals.download_complete.connect(self.on_download_complete)
         self.downloader.signals.song_found.connect(self.on_song_found)
@@ -631,7 +635,7 @@ class DownloaderTab(ctk.CTkFrame):
         self.downloader.signals.error_occurred.connect(self._on_downloader_error)
 
         threading.Thread(target=self.downloader.run, daemon=True).start()
-        
+
     def on_progress_updated(self, percent):
         self.gui_queue.put(("progress", percent))
 
@@ -639,20 +643,20 @@ class DownloaderTab(ctk.CTkFrame):
         self.downloader.stop()
         self.update_status("Stopping...", "busy")
         self.stop_btn.configure(state="disabled", text="Stopping...")
-        
+
         # Ensure inputs re-enable after a moment if thread doesn't callback fast enough
         # But correctly, the thread should finish and call on_download_complete
         # which calls toggle_inputs(True).
         # We'll rely on on_download_complete, but force a check.
         self.after(2000, lambda: self.check_stop_status())
-        
+
     def check_stop_status(self):
         if not self.downloader.is_stopped() and self.start_btn._state == "disabled":
-             # Still waiting? 
+             # Still waiting?
              pass
         else:
              # Just in case
-             if self.start_btn._state == "disabled" and not self.downloader.is_stopped(): 
+             if self.start_btn._state == "disabled" and not self.downloader.is_stopped():
                  # This means thread might have died silently?
                  pass
              elif self.start_btn._state == "disabled":
@@ -712,12 +716,12 @@ class DownloaderTab(ctk.CTkFrame):
                     # Limit log size
                     if len(self.debug_logs) > 1000:
                         self.debug_logs = self.debug_logs[-800:]
-                        
+
                     if self.debug_window and self.debug_text:
                         self.debug_text.insert("end", text + "\n")
                         if count % 10 == 0: # Auto-scroll occasionally
                             self.debug_text.see("end")
-                            
+
                 count += 1
         except queue.Empty:
             pass
@@ -779,14 +783,14 @@ class DownloaderTab(ctk.CTkFrame):
 
     def toggle_inputs(self, enable):
         state = "normal" if enable else "disabled"
-        if hasattr(self, 'start_btn'): 
+        if hasattr(self, 'start_btn'):
             self.start_btn.configure(state=state)
             self.start_btn.configure(text="Start Download" if enable else "Downloading...")
         if hasattr(self, 'preload_btn'):
             self.preload_btn.configure(state=state)
-        if hasattr(self, 'stop_btn'): 
+        if hasattr(self, 'stop_btn'):
             self.stop_btn.configure(state="disabled" if enable else "normal", text="Stop")
-    
+
     def clear_queue(self):
         for w in self.queue_list_frame.winfo_children():
             w.destroy()
@@ -804,7 +808,7 @@ class DownloaderTab(ctk.CTkFrame):
         self._preload_more_btn = None
         self._preload_summary = None
         self._preload_summary_widget = None
-        
+
     def _add_song_card(self, metadata):
         try:
             uuid = metadata.get("id")
@@ -903,22 +907,22 @@ class DownloaderTab(ctk.CTkFrame):
             except Exception as e:
                 print(f"Error rendering pending card: {e}")
         self._update_preload_banner()
-        
+
     def open_debug_window(self):
         if self.debug_window and self.debug_window.winfo_exists():
             self.debug_window.lift()
             return
-            
+
         self.debug_window = ctk.CTkToplevel(self)
         self.debug_window.title("Debug Log")
         self.debug_window.geometry("800x600")
-        
+
         self.debug_text = ctk.CTkTextbox(self.debug_window, font=("Consolas", 12))
         self.debug_text.pack(fill="both", expand=True, padx=10, pady=10)
-        
+
         for l in self.debug_logs:
             self.debug_text.insert("end", l + "\n")
-            
+
     def check_initial_path(self):
         """Ensure a download path is configured on startup."""
         path = self.config_manager.get("downloads_path") or self.config_manager.get("path", "")

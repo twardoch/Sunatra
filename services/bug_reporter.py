@@ -1,6 +1,8 @@
-import customtkinter as ctk
-import traceback
 import sys
+import traceback
+
+import customtkinter as ctk
+
 
 def show_crash_popup(exception):
     """
@@ -9,15 +11,15 @@ def show_crash_popup(exception):
     """
     try:
         # Create a Toplevel window
-        # We assume the main app is running, but if it's super early crash, 
-        # we might need to create a root. 
-        # However, for this integration, we assume a root exists or we can create a Toplevel linked to it 
+        # We assume the main app is running, but if it's super early crash,
+        # we might need to create a root.
+        # However, for this integration, we assume a root exists or we can create a Toplevel linked to it
         # via the currently active app if possible.
-        
+
         # If we can't find a root, we might make a new CTk.
         # But safest is usually to use the existing root if available.
         # This function acts as a standalone popup logic.
-        
+
         root = None
         # Try to find existing root
         try:
@@ -33,15 +35,15 @@ def show_crash_popup(exception):
             # Fallback if no root matches or exists
             window = ctk.CTk()
 
-        window.title("Whoops! SunoSync Crashed")
+        window.title("Whoops! Sunatra Crashed")
         window.geometry("600x500")
         window.attributes("-topmost", True)
-        
+
         # Red Theme for urgency
         window.configure(fg_color="#18181b")
 
         # Header
-        header = ctk.CTkLabel(window, text="Whoops! SunoSync Crashed", 
+        header = ctk.CTkLabel(window, text="Whoops! Sunatra Crashed",
                               font=("Inter", 20, "bold"), text_color="#ef4444")
         header.pack(pady=(20, 10))
 
@@ -52,7 +54,7 @@ def show_crash_popup(exception):
 
         # Traceback Textbox
         tb_text = "".join(traceback.format_exception(type(exception), exception, exception.__traceback__))
-        
+
         textbox = ctk.CTkTextbox(window, width=540, height=300, font=("Consolas", 12))
         textbox.pack(pady=10)
         textbox.insert("1.0", tb_text)
@@ -76,15 +78,15 @@ def show_crash_popup(exception):
                 window.destroy()
                 sys.exit(1)
 
-        ctk.CTkButton(btn_frame, text="Restart App", fg_color="#ef4444", hover_color="#dc2626", 
+        ctk.CTkButton(btn_frame, text="Restart App", fg_color="#ef4444", hover_color="#dc2626",
                       command=restart_app).pack(side="left", padx=10)
-        
-        ctk.CTkButton(btn_frame, text="Close", fg_color="#3f3f46", hover_color="#52525b", 
+
+        ctk.CTkButton(btn_frame, text="Close", fg_color="#3f3f46", hover_color="#52525b",
                       command=lambda: sys.exit(1)).pack(side="left", padx=10)
 
         if not root or not root.winfo_exists():
             window.mainloop()
-            
+
     except Exception as e:
         # Fallback to console if GUI fails
         print("CRITICAL ERROR IN CRASH REPORTER:")

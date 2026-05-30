@@ -1,21 +1,23 @@
-import os
-import logging
-import threading
-import queue
-import time
 import json
-import customtkinter as ctk
+import logging
+import os
+import queue
 import subprocess
+import threading
+import time
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from ui.widgets import SongCard, LibraryRow
-from core.utils import read_song_metadata
+
+import customtkinter as ctk
+
+from core.utils import open_file, read_song_metadata
+from ui.widgets import LibraryRow
 
 logger = logging.getLogger(__name__)
 
 class LibraryTab(ctk.CTkFrame):
     """Library tab for browsing and playing downloaded songs."""
-    
+
     def __init__(self, parent, config_manager, cache_file=None, tags_file=None, manifest=None, **kwargs):
         super().__init__(parent, fg_color="transparent", **kwargs)
 
@@ -24,31 +26,31 @@ class LibraryTab(ctk.CTkFrame):
         self.tags_file = tags_file
         self.manifest = manifest
         self.library_path = self.config_manager.get("library_path") or self.config_manager.get("path", "")
-        
+
         self.all_songs = []
         self.filtered_songs = []
         self.current_page = 0
         self.tags = {}
         self.active_filters = {"keep": False, "trash": False, "star": False}
         self._load_tags()
-        
+
         self.cache = {}
         self.scan_queue = queue.Queue()
         self.is_scanning = False
         self._load_cache()
-        
+
         self.player_widget = None
         self.song_cards = {} # uuid -> SongCard widget
-        
+
         # Selection State
-        self.selected_rows = [] 
+        self.selected_rows = []
         self.last_selected_row = None
-        
+
         self._setup_ui()
-        
+
         # Start queue processing
         self._process_scan_queue()
-        
+
         # Initial Refresh
         self.after(500, self.refresh_library)
 
@@ -172,7 +174,7 @@ class LibraryTab(ctk.CTkFrame):
     def _load_tags(self):
         if self.tags_file and os.path.exists(self.tags_file):
             try:
-                with open(self.tags_file, 'r', encoding='utf-8') as f:
+                with open(self.tags_file, encoding='utf-8') as f:
                     self.tags = json.load(f)
             except Exception:
                 self.tags = {}
@@ -190,11 +192,11 @@ class LibraryTab(ctk.CTkFrame):
     def _load_cache(self):
         if self.cache_file and os.path.exists(self.cache_file):
             try:
-                with open(self.cache_file, 'r', encoding='utf-8') as f:
+                with open(self.cache_file, encoding='utf-8') as f:
                     self.cache = json.load(f)
             except Exception:
                 self.cache = {}
-                
+
     def _save_cache(self):
         if self.cache_file:
              try:
@@ -207,17 +209,17 @@ class LibraryTab(ctk.CTkFrame):
         """Scan the download folder and reload the song list."""
         if self.is_scanning:
             return
-        
+
         try:
             self.all_songs = []
             self.filtered_songs = []
-            
+
             if hasattr(self, '_pending_render') and self._pending_render:
                 self.after_cancel(self._pending_render)
                 self._pending_render = None
-            
+
             self.render_page()
-            
+
             self.library_path = self.config_manager.get("library_path") or self.config_manager.get("path", "")
 
             if not self.library_path or not os.path.exists(self.library_path):
@@ -226,12 +228,12 @@ class LibraryTab(ctk.CTkFrame):
                      self.library_path = default_path
                  else:
                      return
-                
+
             logger.debug("Starting scan of: %s", self.library_path)
             self.is_scanning = True
             self.refresh_btn.configure(state="disabled")
             self.count_label.configure(text="Scanning...")
-            
+
             self._process_scan_queue()
             threading.Thread(target=self._scan_thread, daemon=True).start()
         except Exception as e:
@@ -243,12 +245,12 @@ class LibraryTab(ctk.CTkFrame):
         # Destroy in chunks
         chunk = widgets[:50]
         remainder = widgets[50:]
-        
+
         for w in chunk:
             try:
                 if w.winfo_exists(): w.destroy()
             except: pass
-            
+
         if remainder:
             self.after(50, lambda: self._garbage_collect_widgets(remainder))
 
@@ -261,14 +263,14 @@ class LibraryTab(ctk.CTkFrame):
                  self.scan_queue.put(("done", None))
                  return
 
-             for root, dirs, files in os.walk(self.library_path):
+             for root, _dirs, files in os.walk(self.library_path):
                 for file in files:
                     if file.lower().endswith(('.mp3', '.wav')):
                         filepath = os.path.join(root, file)
                         try:
                             mtime = os.path.getmtime(filepath)
                             cached = self.cache.get(filepath)
-                            
+
                             if cached and cached.get('mtime') == mtime:
                                 song_data = cached
                             else:
@@ -276,7 +278,7 @@ class LibraryTab(ctk.CTkFrame):
                                 if song_data:
                                     song_data['mtime'] = mtime
                                     self.cache[filepath] = song_data
-                            
+
                             if song_data:
                                 new_songs.append(song_data)
                                 count += 1
@@ -286,14 +288,14 @@ class LibraryTab(ctk.CTkFrame):
                                     time.sleep(0.02)
                         except Exception as e:
                             logger.warning("Error processing %s: %s", file, e)
-            
+
              if new_songs:
                 self.scan_queue.put(("batch", new_songs))
-             
+
              logger.debug("Scan complete, %d files processed", count)
              self.scan_queue.put(("done", None))
              self._save_cache()
-            
+
         except Exception as e:
             logger.error("Error in scan thread: %s", e, exc_info=True)
             self.scan_queue.put(("done", None))
@@ -310,7 +312,7 @@ class LibraryTab(ctk.CTkFrame):
                 if msg_type == "batch":
                     self.all_songs.extend(data)
                     self.count_label.configure(text=f"Found {len(self.all_songs)}...")
-                    
+
                 elif msg_type == "done":
                     self.is_scanning = False
                     self.refresh_btn.configure(state="normal")
@@ -318,10 +320,10 @@ class LibraryTab(ctk.CTkFrame):
                     self.filtered_songs = list(self.all_songs)
                     self.current_page = 0
                     self.render_page()
-                    
+
         except Exception as e:
             logger.error("Error in _process_scan_queue: %s", e, exc_info=True)
-            
+
         if self.is_scanning or not self.scan_queue.empty():
             self.after(50, self._process_scan_queue)
 
@@ -336,9 +338,9 @@ class LibraryTab(ctk.CTkFrame):
                         w.pack_forget()
                 except Exception:
                     pass
-            
+
             self.song_cards.clear()
-            
+
             if old_widgets:
                 self.after(100, lambda: self._destroy_widgets(old_widgets))
         except Exception as e:
@@ -349,11 +351,11 @@ class LibraryTab(ctk.CTkFrame):
         per_page = 50
         max_page = max(0, (total - 1) // per_page)
         self.current_page = max(0, min(self.current_page, max_page))
-        
+
         start = self.current_page * per_page
         end = start + per_page
         page_items = self.filtered_songs[start:end]
-        
+
         # Empty state
         if total == 0:
             if hasattr(self, 'empty_state'): self.empty_state.pack(pady=40)
@@ -365,20 +367,20 @@ class LibraryTab(ctk.CTkFrame):
         else:
             if hasattr(self, 'empty_state') and self.empty_state.winfo_exists():
                 self.empty_state.pack_forget()
-        
+
         # Render rows
         for i, song in enumerate(page_items):
             if 'title' in song:
                 from core.utils import clean_title
                 song['title'] = clean_title(song['title'])
             self._add_row(self.scroll_frame, song, start + i)
-            
+
         # Update controls
         self.count_label.configure(text=f"{total} songs")
         self.page_label.configure(text=f"{self.current_page} / {max_page}")
         self.prev_btn.configure(state="normal" if self.current_page > 0 else "disabled")
         self.next_btn.configure(state="normal" if self.current_page < max_page else "disabled")
-    
+
     def _destroy_widgets(self, widgets):
         """Safely destroy widgets in a delayed callback."""
         for w in widgets:
@@ -403,11 +405,11 @@ class LibraryTab(ctk.CTkFrame):
     def _add_row(self, parent, data, index):
         # Odd row check for striping
         odd = (index % 2 == 1)
-        
+
         try:
             row = LibraryRow(parent, data, on_play=self.play_song_data, on_menu=self.show_context_menu, odd_row=odd, on_click=self.on_row_click)
             row.pack(fill="x", pady=0)
-            
+
             uuid = data.get("id") or str(hash(data.get("filepath")))
             if "id" in data:
                 self.song_cards[data["id"]] = row
@@ -424,13 +426,13 @@ class LibraryTab(ctk.CTkFrame):
         try:
              # Check selection count logic
              count = len(self.selected_rows)
-             
+
              # Logic for right-click on selection
              clicked_path = data.get("filepath")
              in_selection = any(r.data.get("filepath") == clicked_path for r in self.selected_rows)
-             
+
              menu = tk.Menu(self, tearoff=0)
-             
+
              if count > 1 and in_selection:
                  menu.add_command(label=f"📋 Copy {count} files (Ctrl+C)", command=self.copy_selection)
                  menu.add_separator()
@@ -439,13 +441,13 @@ class LibraryTab(ctk.CTkFrame):
                  menu.add_command(label="▶ Play", command=lambda: self.play_song_data(data))
                  menu.add_separator()
                  menu.add_command(label="📋 Copy File (Ctrl+C)", command=self.copy_selection)
-                 
+
              menu.add_command(label="📂 Show in Explorer", command=lambda: self.show_in_explorer(data.get("filepath")))
              menu.add_command(label="✏️ Edit Tags", command=lambda: self.edit_metadata(data))
              menu.add_command(label="📓 Save Prompt to Vault", command=lambda: self.save_prompt_to_vault(data))
              menu.add_separator()
              menu.add_command(label="🗑️ Delete", command=lambda: self.delete_song(data))
-             
+
              menu.tk_popup(event.x_root, event.y_root)
         except Exception as e:
             logger.warning("Context menu error: %s", e)
@@ -454,12 +456,12 @@ class LibraryTab(ctk.CTkFrame):
         """Open metadata editor dialog."""
         try:
             from ui.metadata_editor import MetadataEditorDialog
-            
+
             def on_save(updated_data):
                 # Refresh library to show updated metadata
                 self.refresh_library()
-            
-            editor = MetadataEditorDialog(self, data, on_save_callback=on_save)
+
+            MetadataEditorDialog(self, data, on_save_callback=on_save)
         except Exception as e:
             logger.error("Error opening metadata editor: %s", e)
             messagebox.showerror("Error", f"Failed to open editor: {e}")
@@ -473,16 +475,16 @@ class LibraryTab(ctk.CTkFrame):
                 from core.utils import read_song_metadata
                 full_data = read_song_metadata(data["filepath"])
                 prompt_text = full_data.get("prompt", "")
-        
+
         if not prompt_text:
             messagebox.showinfo("Info", "No prompt found for this song.")
             return
 
         # Ask for title
-        default_title = data.get("title", "My Prompt")
+        data.get("title", "My Prompt")
         dialog = ctk.CTkInputDialog(text="Enter a title for this prompt:", title="Save to Vault")
         title = dialog.get_input()
-        
+
         if title:
             try:
                 from ui.vault import PromptManager
@@ -490,7 +492,7 @@ class LibraryTab(ctk.CTkFrame):
                 # Extract tags (Genre)
                 tags = data.get("genre", "")
                 manager.add_prompt(title, prompt_text, tags)
-                
+
                 # Show toast/message
                 # We don't have a toast widget, use active label or messagebox
                 # Making a non-blocking label or just a message box
@@ -509,7 +511,7 @@ class LibraryTab(ctk.CTkFrame):
     def delete_song(self, data):
         path = data.get("filepath")
         if not path or not os.path.exists(path): return
-        
+
         if messagebox.askyesno("Delete", f"Are you sure you want to delete:\\n{data.get('title')}?"):
             try:
                 os.remove(path)
@@ -524,9 +526,9 @@ class LibraryTab(ctk.CTkFrame):
         self.render_page()
 
     def play_song(self, song_input):
-        if not self.player_widget: 
+        if not self.player_widget:
             return
-        
+
         # Determine if song_input is dict or string (filepath)
         selected_song = None
         if isinstance(song_input, dict):
@@ -537,7 +539,7 @@ class LibraryTab(ctk.CTkFrame):
                 if s.get('filepath') == song_input:
                     selected_song = s
                     break
-        
+
         if not selected_song:
             # Last resort: play it directly if it's a string
             if isinstance(song_input, str) and os.path.exists(song_input):
@@ -548,7 +550,7 @@ class LibraryTab(ctk.CTkFrame):
         try:
             # Find index in filtered list
             index = self.filtered_songs.index(selected_song)
-            
+
             # Call player directly instead of using events
             if self.player_widget and hasattr(self.player_widget, 'set_playlist'):
                 self.player_widget.set_playlist(self.filtered_songs, index)
@@ -556,7 +558,7 @@ class LibraryTab(ctk.CTkFrame):
                 # Fallback: play single file
                 filepath = selected_song.get('filepath', '')
                 self.player_widget.play_file(filepath)
-                
+
         except ValueError:
             # Not in filtered list, play single file
             filepath = selected_song.get('filepath', '')
@@ -566,9 +568,9 @@ class LibraryTab(ctk.CTkFrame):
     def on_search(self, *args):
         query = self.search_var.get().lower()
         active_tags = [t for t, active in self.active_filters.items() if active]
-        
+
         candidates = self.all_songs
-        
+
         # Tag filter
         if active_tags:
             filtered = []
@@ -578,7 +580,7 @@ class LibraryTab(ctk.CTkFrame):
                 if tag in active_tags:
                     filtered.append(song)
             candidates = filtered
-            
+
         # Text filter
         if query:
             self.filtered_songs = [
@@ -587,18 +589,18 @@ class LibraryTab(ctk.CTkFrame):
             ]
         else:
             self.filtered_songs = list(candidates)
-            
+
         self._refresh_list()
 
     def toggle_filter(self, tag, color):
         self.active_filters[tag] = not self.active_filters[tag]
-        
+
         btn, active_color = self.filter_btns[tag]
         if self.active_filters[tag]:
             btn.configure(fg_color=active_color, text_color="white")
         else:
             btn.configure(fg_color="transparent", text_color="gray")
-            
+
         self.on_search()
 
     def select_song(self, filepath):
@@ -662,16 +664,16 @@ class LibraryTab(ctk.CTkFrame):
             open_file(path)
         else:
             logger.warning("Library path invalid or not set: %s", path)
-            
+
     def reload_tags(self):
         self._load_tags()
         self.on_search()
 
     # --- Batch Selection Logic ---
     def on_row_click(self, event, data, row_widget):
-        ctrl_pressed = (event.state & 0x4) != 0 
+        ctrl_pressed = (event.state & 0x4) != 0
         shift_pressed = (event.state & 0x1) != 0
-        
+
         if not ctrl_pressed and not shift_pressed:
             self.deselect_all()
             self.set_row_selected(row_widget, True)
@@ -686,12 +688,12 @@ class LibraryTab(ctk.CTkFrame):
                  try:
                      start_idx = rows.index(self.last_selected_row)
                      end_idx = rows.index(row_widget)
-                     
+
                      if start_idx > end_idx: start_idx, end_idx = end_idx, start_idx
-                     
+
                      for i in range(start_idx, end_idx + 1):
                          self.set_row_selected(rows[i], True)
-                         
+
                  except ValueError:
                      self.set_row_selected(row_widget, True)
                      self.last_selected_row = row_widget
@@ -707,28 +709,28 @@ class LibraryTab(ctk.CTkFrame):
         else:
             if row in self.selected_rows:
                 self.selected_rows.remove(row)
-                
+
     def deselect_all(self, event=None):
         for row in self.selected_rows:
             if row.winfo_exists():
                 row.set_selected(False)
         self.selected_rows.clear()
-        
+
     def select_all(self, event=None):
         if hasattr(self, 'scroll_frame'):
             rows = [w for w in self.scroll_frame.winfo_children() if isinstance(w, LibraryRow)]
             for row in rows:
                 self.set_row_selected(row, True)
-        
+
     def copy_selection(self, event=None):
         if not self.selected_rows: return
-        
+
         filepaths = [r.data.get('filepath') for r in self.selected_rows if r.data.get('filepath')]
         # Filter existing
         filepaths = [fp.replace("/", "\\") for fp in filepaths if os.path.exists(fp)]
-        
+
         if not filepaths: return
-        
+
         try:
             from core.utils import copy_files_to_clipboard
             if copy_files_to_clipboard(filepaths):

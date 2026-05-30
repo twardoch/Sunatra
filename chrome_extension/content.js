@@ -1,5 +1,5 @@
 /**
- * SunoSync Token Helper — Content Script
+ * Sunatra Token Helper — Content Script
  * 
  * Runs in the ISOLATED world on suno.com pages.
  * Bridges communication between the page-context injected.js and the
@@ -9,9 +9,9 @@
 (function () {
     'use strict';
 
-    const MSG_TYPE_TOKEN = 'SUNOSYNC_TOKEN';
-    const MSG_TYPE_REFRESH = 'SUNOSYNC_REFRESH';
-    const MSG_TYPE_STATUS = 'SUNOSYNC_STATUS';
+    const MSG_TYPE_TOKEN = 'SUNATRA_TOKEN';
+    const MSG_TYPE_REFRESH = 'SUNATRA_REFRESH';
+    const MSG_TYPE_STATUS = 'SUNATRA_STATUS';
 
     // --- 1. Inject the page-context script ---
     function injectScript() {

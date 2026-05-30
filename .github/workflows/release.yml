@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.artifact }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: Sunatra-windows
+          - os: macos-latest
+            artifact: Sunatra-macos
+          - os: ubuntu-latest
+            artifact: Sunatra-linux
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # tags required for hatch-vcs to stamp the real version
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Tk runtime (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y python3-tk
+
+      - name: Install (editable — also writes core/_version.py from the tag)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Show resolved version
+        run: python -c "import core.version as v; print('Building Sunatra', v.__version__)"
+
+      - name: Build executable
+        run: python build.py
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path dist/Sunatra.exe -DestinationPath ${{ matrix.artifact }}.zip
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: cd dist && zip -r ../${{ matrix.artifact }}.zip Sunatra.app
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: cd dist && zip -r ../${{ matrix.artifact }}.zip Sunatra
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact }}.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true

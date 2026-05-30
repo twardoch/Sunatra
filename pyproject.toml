@@ -1,0 +1,89 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sunatra"
+description = "Your World, Your Music. Seamlessly Synced. — desktop manager for your Suno AI music library."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Adam Twardoch" }]
+dynamic = ["version"]
+dependencies = [
+    "requests>=2.31.0",
+    "mutagen>=1.47.0",
+    "Pillow>=10.0.0",
+    "pyperclip>=1.8.2",
+    "colorama>=0.4.6",
+    "python-vlc>=3.0.20",
+    "customtkinter>=5.2.0",
+    "appdirs>=1.4.4",
+    "pypresence>=4.3.0",
+    "sentry-sdk>=1.40.0",
+    "pynput>=1.7.6",
+]
+
+[project.urls]
+Homepage = "https://github.com/twardoch/Sunatra"
+Issues = "https://github.com/twardoch/Sunatra/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pyinstaller>=6.0",
+]
+
+[project.gui-scripts]
+sunatra = "main:main"
+
+# --- Versioning: derived from semver git tags via hatch-vcs ------------------
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "core/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["core", "services", "ui"]
+force-include = { "main.py" = "main.py" }
+
+[tool.hatch.build.targets.sdist]
+include = ["core", "services", "ui", "main.py", "build.py", "assets", "resources", "version.json"]
+
+# --- Tooling -----------------------------------------------------------------
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+extend-exclude = ["core/_version.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+# Bug-class rules (F, most B, undefined names) stay ON. The ignores below are
+# pervasive legacy *style* in the GUI layer — reformatting them is churn on code
+# that can't be headlessly tested, not a correctness win.
+ignore = [
+    "E501",   # line length — many UI strings are intentionally long
+    "E701",   # `if x: y` one-liners are pervasive legacy GUI style
+    "E402",   # main.py deliberately configures logging before heavy imports
+    "E722",   # legacy bare excepts in GUI glue — tracked in TODO
+    "E741",   # ambiguous names (l) in a couple of layout helpers
+    "B008",   # function calls in defaults appear in Tk callbacks
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B", "E402"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+follow_imports = "silent"
+warn_unused_ignores = false
+exclude = ["core/_version.py", "build/", "dist/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

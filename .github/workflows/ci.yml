@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history + tags so hatch-vcs can resolve a version
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install (package + dev tools)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Syntax check (all modules incl. GUI)
+        run: python -m compileall -q core services ui main.py build.py conftest.py
+
+      - name: Tests
+        run: pytest -q
+
+      - name: Branding guard (no SunoSync in source)
+        shell: bash
+        run: |
+          # Legacy 'SunoSync' is allowed ONLY in core/app_meta.py (migration keys)
+          # and tests/ (which exercise the legacy-dir migration). Anywhere else is a
+          # rebrand regression.
+          if grep -rin "sunosync" --include="*.py" --include="*.js" --include="*.json" \
+               --include="*.html" . | grep -vE "app_meta\.py|tests/"; then
+            echo "::error::Found 'SunoSync' outside core/app_meta.py and tests/ — rebrand regression."
+            exit 1
+          fi
+          echo "Branding guard passed."

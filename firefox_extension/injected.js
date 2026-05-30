@@ -1,5 +1,5 @@
 /**
- * SunoSync Token Helper — Injected Script
+ * Sunatra Token Helper — Injected Script
  * 
  * This script runs in the PAGE context (same world as suno.com's code).
  * It has access to window.Clerk and can call getToken().
@@ -9,9 +9,9 @@
 (function () {
     'use strict';
 
-    const MSG_TYPE_TOKEN = 'SUNOSYNC_TOKEN';
-    const MSG_TYPE_REFRESH = 'SUNOSYNC_REFRESH';
-    const MSG_TYPE_STATUS = 'SUNOSYNC_STATUS';
+    const MSG_TYPE_TOKEN = 'SUNATRA_TOKEN';
+    const MSG_TYPE_REFRESH = 'SUNATRA_REFRESH';
+    const MSG_TYPE_STATUS = 'SUNATRA_STATUS';
 
     /**
      * Wait for window.Clerk to be available, then grab the token.

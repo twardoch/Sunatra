@@ -1,11 +1,11 @@
 {
     "manifest_version": 3,
-    "name": "SunoSync Token Helper",
+    "name": "Sunatra Token Helper",
     "version": "1.0.0",
-    "description": "Automatically grabs and refreshes your Suno authentication token for SunoSync.",
+    "description": "Automatically grabs and refreshes your Suno authentication token for Sunatra.",
     "browser_specific_settings": {
         "gecko": {
-            "id": "sunosync@sunsetsacoustic.dev",
+            "id": "sunatra@twardoch.dev",
             "strict_min_version": "121.0"
         }
     },

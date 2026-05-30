@@ -1,13 +1,13 @@
 /**
- * SunoSync Token Helper — Background Service Worker
+ * Sunatra Token Helper — Background Service Worker
  * 
  * Receives tokens from the content script, pushes them to the 
- * SunoSync Python app via HTTP, and manages the auto-refresh timer.
+ * Sunatra Python app via HTTP, and manages the auto-refresh timer.
  */
 
 const TOKEN_SERVER_URL = 'http://127.0.0.1:38945';
 const REFRESH_INTERVAL_SECONDS = 50; // Clerk tokens expire ~60s, refresh with buffer
-const ALARM_NAME = 'sunosync_token_refresh';
+const ALARM_NAME = 'sunatra_token_refresh';
 
 // --- State ---
 let state = {
@@ -20,13 +20,13 @@ let state = {
 
 // --- Persist & Load State ---
 function saveState() {
-    chrome.storage.local.set({ sunosync_state: state });
+    chrome.storage.local.set({ sunatra_state: state });
 }
 
 function loadState() {
-    chrome.storage.local.get('sunosync_state', (result) => {
-        if (result.sunosync_state) {
-            state = { ...state, ...result.sunosync_state };
+    chrome.storage.local.get('sunatra_state', (result) => {
+        if (result.sunatra_state) {
+            state = { ...state, ...result.sunatra_state };
         }
     });
 }
@@ -75,7 +75,7 @@ async function pushTokenToApp(token) {
         }
     } catch (err) {
         state.appConnected = false;
-        state.lastError = 'Cannot reach SunoSync app. Is it running?';
+        state.lastError = 'Cannot reach Sunatra app. Is it running?';
         saveState();
         updateBadge('disconnected');
         return false;
@@ -102,7 +102,7 @@ function scheduleSmartRefresh(token) {
                 // Cap minimum delay to avoid rapid loops if something is wrong
                 if (delayInMinutes < 0.1) delayInMinutes = 0.1;
 
-                console.log(`[SunoSync] Token expires in ${timeToExpiry}s. Scheduling refresh in ${refreshInSeconds}s.`);
+                console.log(`[Sunatra] Token expires in ${timeToExpiry}s. Scheduling refresh in ${refreshInSeconds}s.`);
             } else {
                 // Expiring very soon, refresh immediately (or very short delay)
                 delayInMinutes = 0.1;
@@ -131,7 +131,7 @@ async function checkAppStatus() {
 
             // If just connected (or re-connected), immediately push token
             if (!wasConnected && state.lastToken) {
-                console.log("[SunoSync] App discovered! Pushing cached token...");
+                console.log("[Sunatra] App discovered! Pushing cached token...");
                 pushTokenToApp(state.lastToken);
             }
         } else {
@@ -186,7 +186,7 @@ async function requestTokenRefresh() {
             }
         }
     } catch (err) {
-        console.error('SunoSync: Error requesting refresh:', err);
+        console.error('Sunatra: Error requesting refresh:', err);
     }
 }
 

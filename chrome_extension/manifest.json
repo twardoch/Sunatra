@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "SunoSync Token Helper",
+    "name": "Sunatra Token Helper",
     "version": "1.0.0",
-    "description": "Automatically grabs and refreshes your Suno authentication token for SunoSync.",
+    "description": "Automatically grabs and refreshes your Suno authentication token for Sunatra.",
     "icons": {
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",

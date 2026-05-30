@@ -1,5 +1,5 @@
 """
-Library manifest — single source of truth for which Suno UUIDs SunoSync has
+Library manifest — single source of truth for which Suno UUIDs Sunatra has
 downloaded, where each file currently lives (Downloads vs Library), and which
 UUIDs the user has explicitly trashed (permanent dismiss; survives entry removal).
 
@@ -16,8 +16,7 @@ import os
 import threading
 import time
 
-import appdirs
-
+from core.app_meta import user_data_dir
 
 SCHEMA_VERSION = 1
 
@@ -29,11 +28,14 @@ LOCATION_DOWNLOADS = "downloads"
 LOCATION_LIBRARY = "library"
 
 
+def _utcnow_iso() -> str:
+    """UTC timestamp as ``YYYY-MM-DDTHH:MM:SSZ`` (tz-aware; avoids the
+    deprecated ``datetime.utcnow``)."""
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def default_manifest_path() -> str:
-    return os.path.join(
-        appdirs.user_data_dir("SunoSync", "InternetThot"),
-        "library_manifest.json",
-    )
+    return os.path.join(user_data_dir(), "library_manifest.json")
 
 
 class LibraryManifest:
@@ -56,7 +58,7 @@ class LibraryManifest:
             self.trashed = {}
             return
         try:
-            with open(self.path, "r", encoding="utf-8") as f:
+            with open(self.path, encoding="utf-8") as f:
                 data = json.load(f)
         except (json.JSONDecodeError, ValueError) as e:
             quarantine = f"{self.path}.corrupt-{int(time.time())}"
@@ -137,7 +139,7 @@ class LibraryManifest:
                 "artist": artist,
                 "filepath": filepath,
                 "location": location,
-                "downloaded_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+                "downloaded_at": _utcnow_iso(),
             }
         self._schedule_save()
 
@@ -170,7 +172,7 @@ class LibraryManifest:
             self.trashed[uuid] = {
                 "title": title or existing.get("title", ""),
                 "artist": artist or existing.get("artist", ""),
-                "trashed_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+                "trashed_at": _utcnow_iso(),
             }
         self._schedule_save()
 
@@ -281,7 +283,7 @@ class LibraryManifest:
                         "artist": "",
                         "filepath": filepath,
                         "location": location,
-                        "downloaded_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+                        "downloaded_at": _utcnow_iso(),
                     }
                     added += 1
                 else:

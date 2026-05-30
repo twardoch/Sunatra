@@ -1,133 +1,105 @@
-# SunoSync V3.0
+# Sunatra
 
 **Your World, Your Music. Seamlessly Synced.**
 
-SunoSync is the ultimate desktop ecosystem for your Suno AI music generation. It combines a powerful bulk downloader, a rich music library, a prompt vault, live radio broadcasting, and a mobile bridge into one seamless application.
+Sunatra is a cross-platform desktop app for your [Suno](https://suno.com) AI music
+library: a bulk downloader, a rich music library with playback, a prompt vault, and
+companion browser extensions for one-click authentication — in one application.
 
-![SunoSync Splash](resources/splash.png)
+> Sunatra is the actively maintained successor to *SunoSync*. It is an unofficial tool
+> and is not affiliated with Suno AI.
 
-**Get the official build or compile yourself below for free:**
+## Features
 
-- https://ko-fi.com/s/374c24251c - PayPal accepted here  [$3 or pay what you want]
-- https://justinmurray99.gumroad.com/l/rrxty  [$3 or pay what you want]
+- **Smart downloader** — bulk-download your whole Suno library; filter by Liked, Public,
+  Trash, Uploads, Covers, Personas and more; choose **MP3** or lossless **WAV**.
+- **Metadata embedding** — Title, Artist, Lyrics, Cover Art, the Suno `UUID`, and the
+  original **Suno creation date** are written into the audio tags.
+- **Music library** — dark-themed browser with clean titles, Like/Star/Trash tagging,
+  and a stats dashboard.
+- **Two-stage flow** — new tracks land in a **Downloads** folder, then get promoted to
+  your **Library**. A manifest tracks every UUID so re-runs only fetch what's new.
+- **Prompt vault** — save and one-click-copy your best prompts.
+- **Browser extensions** — Chrome and Firefox companions auto-sync your Suno session
+  token to the app (no manual cookie copying).
 
-**Discord Support and Community:** https://discord.gg/kZSc8sKUZR
+## Install
 
-## 🌟 Key Features
+Pre-built executables for **Windows, macOS, and Linux** are published on the
+[Releases page](https://github.com/twardoch/Sunatra/releases/latest).
 
-### 🎨 Modern UI Redesign
-*   **Sleek Dark Theme**: A fully custom, responsive interface built with CustomTkinter.
-*   **Compact Sidebar**: Optimized navigation with a sticky "Settings" footer for easy access on any screen size.
-*   **Inline Controls**: Quick access to Workspaces and Playlists via inline dropdown menus.
+| OS | Download | Notes |
+|----|----------|-------|
+| Windows | `Sunatra-windows.zip` → `Sunatra.exe` | Some antivirus may flag unsigned indie builds. |
+| macOS | `Sunatra-macos.zip` → `Sunatra.app` | Right-click → Open the first time (unsigned). |
+| Linux | `Sunatra-linux.zip` → `Sunatra` | `chmod +x Sunatra` then run. |
 
-### 📥 Smart Downloader
-*   **Advanced Filtering**: Filter by Status (Liked, Public, Trash) and Type (Generations, Uploads) with a new robust Filter Bar.
-*   **Bulk Downloading**: Download your entire Suno library in one click.
-*   **Smart Sync**: Only downloads new songs, skipping existing files.
-*   **Format Choice**: **MP3** (Compact) or **WAV** (Lossless).
-*   **Metadata Embedding**: Automatically embeds Title, Artist, **Lyrics**, and Cover Art into audio tags.
+**Audio engine:** Sunatra plays audio through [VLC](https://www.videolan.org/), which
+must be installed on your system (it is not bundled).
 
-### 📚 Ultimate Music Library
-*   **Visual Browser**: Browse your collection with a clean, dark-themed grid.
-*   **Clean Titles**: Automatically sanitizes messy raw titles into readable text.
-*   **Tag System**: Organize with Like 👍, Star ⭐, and Trash 🗑️.
-*   **Stats Dashboard**: View detailed analytics of your library (Top Genres, Monthly Activity, etc.).
+## Connect your Suno account
 
-### 🔌 Browser Extension Integration
-*   **Auto-Token Sync**: Never manually copy cookies again. Companion extensions for Chrome and Firefox automatically sync your Suno session with the desktop app.
+- **Easy (recommended):** install the Sunatra browser extension (see below). It detects
+  when Sunatra is running and syncs your session token automatically.
+- **Manual:** in the app click *Get Token*, log in to suno.com, open DevTools →
+  Application → Cookies, and copy the `__client` cookie.
 
-### 📻 Suno On-Air & Mobile Bridge
-*   **Live Radio**: Broadcast your library as a live web radio station to share with friends.
-*   **Mobile Bridge**: Scan a QR code to stream your library directly to your phone browser.
+### Browser extension
 
-### 🔐 Prompt Vault
-*   **Save Your Prompts**: Never lose a great prompt again. Save and organize your best prompts.
-*   **One-Click Copy**: Quickly copy prompts to clipboard for reuse in Suno.
+**Chrome / Edge / Chromium:** `chrome://extensions/` → enable Developer Mode →
+*Load unpacked* → select the `chrome_extension/` folder.
 
-## 🚀 Getting Started
+**Firefox (121+):** `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* →
+select `firefox_extension/manifest.json`. (Temporary add-ons are removed when Firefox
+closes; a signed build is planned.)
 
-1.  **Download**: Get the latest `SunoSync.exe`.
-2.  **Install VLC**: Ensure [VLC Media Player](https://www.videolan.org/) is installed (required for audio engine).
-3.  **Run**: Double-click `SunoSync.exe`.
-4.  **Connect**:
-    *   **Option A (Easy)**: Install the SunoSync browser extension (Chrome or Firefox — see below). It will automatically detect the app and sync your token.
-    *   **Option B (Manual)**: Click "Get Token", log in to Suno.com, open DevTools -> Application -> Cookies, and copy the `__client` cookie.
+## Run from source
 
-## 🔌 Browser Extension (Auto-Auth)
-
-SunoSync ships with companion extensions for Chrome and Firefox that make authentication automatic.
-
-### Chrome / Edge / other Chromium
-
-1.  **Open Extensions**: Go to `chrome://extensions/`.
-2.  **Enable Developer Mode**: Toggle the switch in the top right.
-3.  **Load Unpacked**: Click the button and select the `chrome_extension` folder inside the SunoSync directory.
-4.  **Done!**: The extension will now automatically detect when SunoSync is open and sync your session token.
-
-### Firefox (121+)
-
-1.  **Open Add-ons Debugging**: Go to `about:debugging#/runtime/this-firefox`.
-2.  **Load Temporary Add-on**: Click the button and select `firefox_extension/manifest.json`.
-3.  **Done!** — Note: temporary add-ons are removed when Firefox closes; for a persistent install you'll need a Mozilla-signed build (planned).
-
-## 🔄 Updating SunoSync
-
-### If you built from source (Git):
-1.  Open your terminal in the `SunoSync-main` folder.
-2.  Run `git pull` to get the latest code.
-3.  Run `pip install -r requirements.txt` to check for new dependencies.
-4.  Run `python main.py` or rebuild the EXE.
-
-### If you use the standalone EXE:
-1.  Download the new version from the release page.
-2.  Replace your old `SunoSync.exe` with the new one.
-3.  Your settings and database (`library_cache.json`) are safe and will be preserved.
-
-## �🔒 Transparency
-
-We believe in 100% transparency. SunoSync is an indie tool built with Python.
-*   **Crash Shield**: Built-in error reporting (Sentry) helps us fix bugs faster.
-*   **False Positives**: Some antivirus software may flag the app because it is not digitally signed by a corporation. This is normal for open-source Python tools.
-
-## ☕ Support
-
-Created by **@InternetThot**
-
-If you love SunoSync, consider buying me a coffee to support future updates!
-👉 [buymeacoffee.com/audioalchemy](https://buymeacoffee.com/audioalchemy)
-
----
-*SunoSync is an unofficial tool and is not affiliated with Suno AI.*
-
-## 🛠️ Building from Source
-
-### Prerequisites
-*   **Python 3.10+**
-*   **Git**
-*   **VLC Media Player**
-
-### Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/sunsetsacoustic/SunoSyncV2.git
-    cd SunoSyncV2
-    ```
-
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-3.  **Run the application:**
-    ```bash
-    python main.py
-    ```
-
-### Compiling
-To build the standalone `.exe` file:
+Requires **Python 3.10+**, **git**, and **VLC**.
 
 ```bash
-pyinstaller SunoSync.spec
+git clone https://github.com/twardoch/Sunatra.git
+cd Sunatra
+pip install -e .          # installs runtime dependencies
+python main.py            # run the app
 ```
-The executable will be in the `dist/` folder.
+
+## Build an executable
+
+A single cross-platform build script handles Windows, macOS, and Linux:
+
+```bash
+pip install -e ".[dev]"   # includes PyInstaller
+python build.py           # output in dist/
+```
+
+`build.py` derives all paths from the repo, validates inputs, and produces a one-file
+binary on Windows/Linux and a `.app` bundle on macOS.
+
+## Versioning & releases
+
+Sunatra uses **semantic-version git tags** via `hatch-vcs`. The running version is
+derived from the latest tag (`core/_version.py` is generated at build time and is not
+committed). Pushing a `vX.Y.Z` tag triggers the GitHub Actions release workflow, which
+builds executables for all three platforms and attaches them to a GitHub Release.
+
+```bash
+git tag v3.1.0 && git push origin v3.1.0    # cuts a release
+```
+
+## Development
+
+```bash
+pip install -e ".[dev]"
+ruff check .                       # lint
+pytest                             # tests
+python -m compileall core services ui main.py
+```
+
+CI runs lint, a syntax check, and the test suite on Windows, macOS, and Linux for every
+push and pull request.
+
+## License
+
+See [LICENSE](LICENSE). Created by the Sunatra contributors; originally based on SunoSync
+by @InternetThot. Sunatra is unofficial and not affiliated with Suno AI.
