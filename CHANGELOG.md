@@ -5,6 +5,16 @@ All notable changes to this project are documented here. This project adheres to
 
 ## [Unreleased]
 
+### Docs site, type hints & mypy-clean
+- Added a **Just-the-Docs documentation site** under `docs/` (GitHub Pages): home,
+  install (per-OS binary table), account setup (extension vs. manual cookie), browser
+  extension setup, library-filter reference, build-from-source, and an FAQ (antivirus
+  false positives, unsigned binaries, VLC). README now links to it.
+- Typed the pure `song_passes_filters()` predicate (`core/downloader.py`) and fixed the
+  one remaining **mypy** error (mixed logging-handler list in `app.py`); `mypy sunatra`
+  is now clean across all 33 modules.
+- Added `docs/assets/icon.png` — a single-line project mark.
+
 ### Package restructure + uv tooling
 - **Eliminated the root `main.py`.** All code now lives in a single importable
   `sunatra/` package (`core`, `services`, `ui` moved under it; `assets`/`resources`

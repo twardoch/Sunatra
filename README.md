@@ -14,6 +14,9 @@ companion browser extensions for one-click authentication — in one application
 > Sunatra is the actively maintained successor to *SunoSync*. It is an unofficial tool
 > and is not affiliated with Suno AI.
 
+**Documentation:** [twardoch.github.io/Sunatra](https://twardoch.github.io/Sunatra) —
+install, account setup, browser extension, library filters, building from source, and FAQ.
+
 ## Features
 
 - **Smart downloader** — bulk-download your whole Suno library; filter by Liked, Public,

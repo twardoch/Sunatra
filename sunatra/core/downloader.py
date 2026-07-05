@@ -4,6 +4,7 @@ import threading
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any
 from urllib.parse import urlparse
 
 import requests
@@ -19,7 +20,14 @@ from sunatra.core.utils import (
 GEN_API_BASE = "https://studio-api.prod.suno.com"
 
 
-def song_passes_filters(song_data, filters, *, stems_only=False, scan_only=False, is_stem=False):
+def song_passes_filters(
+    song_data: dict[str, Any],
+    filters: dict[str, Any] | None,
+    *,
+    stems_only: bool = False,
+    scan_only: bool = False,
+    is_stem: bool = False,
+) -> bool:
     """Pure predicate: does *song_data* survive the UI *filters*?
 
     Extracted from ``SunoDownloader.run`` so the filtering rules (notably the

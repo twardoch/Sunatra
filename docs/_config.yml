@@ -1,0 +1,17 @@
+title: Sunatra
+description: Your World, Your Music. Seamlessly Synced. — a desktop manager for your Suno AI music library.
+remote_theme: just-the-docs/just-the-docs
+url: https://twardoch.github.io
+baseurl: /Sunatra
+color_scheme: dark
+search_enabled: true
+
+aux_links:
+  GitHub: https://github.com/twardoch/Sunatra
+  Releases: https://github.com/twardoch/Sunatra/releases/latest
+
+footer_content: "Sunatra is unofficial and not affiliated with Suno AI. Released under the MIT license."
+
+plugins:
+  - jekyll-remote-theme
+  - jekyll-seo-tag

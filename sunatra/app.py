@@ -10,7 +10,9 @@ from PIL import Image, ImageTk
 
 # --- Logging Setup ---
 LOG_FILE = "debug.log"
-handlers = [logging.FileHandler(LOG_FILE, mode='w', encoding='utf-8')]
+# Mixed handler types (file + optional stream) — annotate to the base class so
+# both are accepted; a bare list literal would be inferred as list[FileHandler].
+handlers: list[logging.Handler] = [logging.FileHandler(LOG_FILE, mode='w', encoding='utf-8')]
 if sys.stdout is not None:
     handlers.append(logging.StreamHandler(sys.stdout))
 

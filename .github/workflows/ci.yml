@@ -33,6 +33,9 @@ jobs:
       - name: Lint
         run: uv run ruff check .
 
+      - name: Type check (core package)
+        run: uv run mypy sunatra
+
       - name: Syntax check (all modules incl. GUI)
         run: uv run python -m compileall -q sunatra build.py publish.py install.py conftest.py
 

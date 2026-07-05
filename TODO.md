@@ -21,6 +21,13 @@
 > job); added `uv.lock`. Real wheel and macOS `.app` both built. **45 tests pass, ruff
 > clean.**
 
+> **Progress — docs site + mypy (done, validated):** Added a Just-the-Docs `docs/` site
+> (home, install, account setup, browser extension, library filters, build-from-source,
+> FAQ) published to GitHub Pages; added a project icon at `docs/assets/icon.png`. Typed
+> `song_passes_filters()` and cleared the last mypy error (`app.py` handler list) — `mypy
+> sunatra` is clean across 33 modules and now runs in CI alongside ruff. **45 tests pass,
+> ruff + mypy clean.**
+
 Actionable plan for the **Sunatra** project (fork of `sunsetsacoustic/SunoSync`, now
 `twardoch/Sunatra`). Items are grouped by source goal. Check off `- [ ]` as completed;
 keep this file as the flat companion to `PLAN.md`.
