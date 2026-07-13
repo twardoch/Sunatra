@@ -4,9 +4,8 @@ import time
 import threading
 import json
 import requests
-import math
 import appdirs
-from mutagen.id3 import ID3, APIC, TIT2, TPE1, TCON, COMM, TDRC, TYER, USLT, TXXX, error
+from mutagen.id3 import ID3, APIC, TIT2, TPE1, TCON, COMM, TDRC, TYER, USLT, TXXX
 from mutagen.mp3 import MP3
 from mutagen.wave import WAVE
 import platform
@@ -44,6 +43,13 @@ def _save_uuid_cache(cache):
             json.dump(cache, f)
     except OSError:
         pass
+
+
+def _path_in_dir(path_norm, directory_norm):
+    """True if *path_norm* is *directory_norm* itself or lives beneath it.
+    Both args must already be normcase+normpath'd. Guards against sibling
+    directories whose names share a prefix (e.g. Music vs MusicBackup)."""
+    return path_norm == directory_norm or path_norm.startswith(directory_norm + os.sep)
 
 
 def _scan_with_uuid_cache(directory, exts):
@@ -85,10 +91,13 @@ def _scan_with_uuid_cache(directory, exts):
         # Prune entries for files that no longer exist (or moved out of scope).
         # Only prune entries that *would* have been included in this scan — i.e.
         # under the same directory tree — so partial scans don't wipe siblings.
-        directory_norm = os.path.normpath(directory)
+        # Use normcase + a trailing separator so scanning "C:\Music" doesn't match
+        # a sibling like "C:\MusicBackup", and casing differences don't defeat it.
+        directory_norm = os.path.normcase(os.path.normpath(directory))
         for stale in [
             p for p in cache
-            if os.path.normpath(p).startswith(directory_norm) and p not in seen_paths
+            if _path_in_dir(os.path.normcase(os.path.normpath(p)), directory_norm)
+            and p not in seen_paths
         ]:
             del cache[stale]
             dirty = True
@@ -451,9 +460,10 @@ def read_song_metadata(filepath):
         result['title'] = get_display_title(result['title'], result.get('prompt'))
     
     except Exception as e:
-        # On any error, fallback to filename
-        pass
-    
+        # On any error, fall back to the filename-only stub but surface the
+        # cause so silent metadata corruption is diagnosable.
+        print(f"Metadata read failed for {filepath}: {e}")
+
     return result
 
 
@@ -515,7 +525,7 @@ def save_metadata_to_file(filepath, metadata_dict):
             from mutagen.id3 import ID3, TIT2, TPE1, TCON, TBPM, USLT, TXXX
             try:
                 audio = ID3(filepath)
-            except:
+            except Exception:
                 audio = ID3()
         elif ext == '.wav':
             from mutagen.wave import WAVE
@@ -579,9 +589,7 @@ FILENAME_BAD_CHARS = r'[<>:"/\\|?*\x00-\x1F]'
 
 def hex_to_rgb(color):
     color = color.lstrip("#")
-    if len(color) == 6:
-        return tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
-    elif len(color) == 8:
+    if len(color) in (6, 8):
         return tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
     return (0, 0, 0)
 
@@ -608,22 +616,10 @@ def sanitize_filename(name, maxlen=200):
     return safe[:maxlen] if len(safe) > maxlen else safe
 
 
-def get_unique_filename(filename):
-    if not os.path.exists(filename):
-        return filename
-    name, extn = os.path.splitext(filename)
-    counter = 2
-    while True:
-        new_filename = f"{name} v{counter}{extn}"
-        if not os.path.exists(new_filename):
-            return new_filename
-        counter += 1
-
-
 def reserve_unique_path(filename, max_attempts=200):
     """Atomically reserve *filename* (or a `Title vN.ext` variant) by creating
     a 0-byte file with O_CREAT|O_EXCL. Returns the reserved path. Race-safe
-    across threads and processes — unlike `get_unique_filename`, which has a
+    across threads and processes — unlike a plain existence check, which has a
     TOCTOU window between the existence check and the actual write that lets
     two concurrent downloaders pick the same path and clobber each other.
 
@@ -811,75 +807,28 @@ def safe_messagebox(func, *args, suppress_sound=False, **kwargs):
     Returns:
         The result of the messagebox function
     """
-    if suppress_sound:
-        # Suppress Windows notification sound
+    if not suppress_sound:
+        return func(*args, **kwargs)
+
+    # Mute the Tk bell for the duration of the dialog, restoring it afterwards.
+    # If anything about the bell fiddling fails, just show the dialog normally.
+    import tkinter as tk
+    root = tk._default_root
+    if root is None:
+        return func(*args, **kwargs)
+    try:
+        original_volume = root.tk.call('set', 'bell_volume')
+        root.tk.call('set', 'bell_volume', '0')
+    except Exception:
+        return func(*args, **kwargs)
+    try:
+        return func(*args, **kwargs)
+    finally:
         try:
-            import tkinter as tk
-            root = tk._default_root
-            if root:
-                # Save current bell volume
-                original_volume = root.tk.call('set', 'bell_volume', root.tk.call('set', 'bell_volume'))
-                # Disable bell sound by setting volume to 0
-                try:
-                    root.tk.call('set', 'bell_volume', '0')
-                    result = func(*args, **kwargs)
-                finally:
-                    # Restore bell volume
-                    try:
-                        root.tk.call('set', 'bell_volume', original_volume)
-                    except:
-                        pass
-                return result
-        except:
-            # Fallback: try disabling bell completely
-            try:
-                import tkinter as tk
-                root = tk._default_root
-                if root:
-                    root.option_add('*bellOff', '1')
-                    try:
-                        result = func(*args, **kwargs)
-                    finally:
-                        root.option_clear('*bellOff')
-                    return result
-            except:
-                pass
-    
-    # If suppress_sound is False or error occurred, use normal messagebox
-    return func(*args, **kwargs)
+            root.tk.call('set', 'bell_volume', original_volume)
+        except Exception:
+            pass
 
-
-def create_tooltip(widget, text):
-    """Create a tooltip for a widget."""
-    def on_enter(event):
-        # Destroy existing tooltip if any
-        if hasattr(widget, 'tooltip'):
-            try:
-                widget.tooltip.destroy()
-            except:
-                pass
-            del widget.tooltip
-            
-        import tkinter as tk
-        tooltip = tk.Toplevel()
-        tooltip.wm_overrideredirect(True)
-        tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
-        label = tk.Label(tooltip, text=text, bg="#2d2d2d", fg="#e0e0e0",
-                       font=("Inter", 9), padx=8, pady=4, relief="solid", borderwidth=1)
-        label.pack()
-        widget.tooltip = tooltip
-    
-    def on_leave(event):
-        if hasattr(widget, 'tooltip'):
-            try:
-                widget.tooltip.destroy()
-            except:
-                pass
-            del widget.tooltip
-    
-    widget.bind("<Enter>", on_enter)
-    widget.bind("<Leave>", on_leave)
-    widget.bind("<ButtonPress>", on_leave)
 
 
 def copy_files_to_clipboard(file_list):

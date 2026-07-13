@@ -1,29 +1,47 @@
 import customtkinter as ctk
 import json
 import os
+import shutil
+import time
 import uuid
+import appdirs
 from tkinter import messagebox
 from core.utils import safe_messagebox
 
 class PromptManager:
     """Manages storage of prompts in JSON file."""
     def __init__(self, filename="prompts.json"):
-        import appdirs
-        data_dir = appdirs.user_data_dir("SunoSync", "SunoSync")
+        data_dir = appdirs.user_data_dir("SunoSync", "InternetThot")
         self.filepath = os.path.join(data_dir, filename)
-        
+
         # Ensure dir exists
         os.makedirs(data_dir, exist_ok=True)
-        
+
+        # One-time migration: older builds stored the Vault under a different
+        # appdirs author ("SunoSync") than the rest of the app ("InternetThot").
+        # If the new location has no prompts file yet but a legacy one exists,
+        # copy it across so users don't lose their saved prompts. We copy
+        # rather than move, leaving the legacy file as a backup.
+        if not os.path.exists(self.filepath):
+            legacy_path = os.path.join(
+                appdirs.user_data_dir("SunoSync", "SunoSync"), filename
+            )
+            if os.path.exists(legacy_path):
+                try:
+                    shutil.copy2(legacy_path, self.filepath)
+                    print(f"Vault: migrated prompts from {legacy_path} to {self.filepath}")
+                except Exception as e:
+                    print(f"Vault: failed to migrate prompts from {legacy_path}: {e}")
+
         self.prompts = {}
         self.load()
-    
+
     def load(self):
         if os.path.exists(self.filepath):
             try:
                 with open(self.filepath, 'r', encoding='utf-8') as f:
                     self.prompts = json.load(f)
-            except:
+            except Exception:
                 self.prompts = {}
     
     def save(self):
@@ -55,7 +73,6 @@ class PromptManager:
         # Sort by title
         return dict(sorted(self.prompts.items(), key=lambda item: item[1]['title'].lower()))
 
-import time
 
 class VaultTab(ctk.CTkFrame):
     """Prompt Vault Tab for storing ideas."""

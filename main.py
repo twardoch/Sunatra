@@ -1,6 +1,5 @@
 import os
 import sys
-import threading
 import json
 import ctypes
 import customtkinter as ctk
@@ -411,9 +410,9 @@ class SunoSyncApp(ctk.CTk):
             splash_window.destroy()
             self.deiconify()
             self.show_view("dashboard")
-            # Changelog popup disabled — feels noisy on every version bump.
-            # check_changelog() is kept defined below in case we want to wire
-            # it back in selectively (e.g., only on major versions).
+            # Changelog popup intentionally disabled — it felt noisy on every
+            # version bump. Reinstate from git history if we ever want it back
+            # (e.g. only on major versions).
 
         self.after(2000, end_splash)
 
@@ -495,37 +494,6 @@ class SunoSyncApp(ctk.CTk):
             added += 1
         self.manifest.flush()
         print(f"Migration: imported {added} existing UUIDs from {legacy_path} into the manifest.")
-
-    def check_changelog(self):
-        """Show changelog on first launch of new version."""
-        current_version = APP_VERSION
-        last_version = None
-        state_file = "window_state.json"
-        data = {}
-
-        if os.path.exists(state_file):
-            try:
-                with open(state_file, "r") as f:
-                    data = json.load(f)
-                    last_version = data.get("version")
-            except (json.JSONDecodeError, OSError):
-                pass
-
-        if last_version != current_version:
-            messagebox.showinfo(
-                f"What's New in v{current_version}",
-                f"🎉 Welcome to SunoSync v{current_version}! 🎉\n\n"
-                "• Redesigned UI with CustomTkinter\n"
-                "• Improved Stability\n"
-                "• Better Configuration Management",
-            )
-
-            data["version"] = current_version
-            try:
-                with open(state_file, "w") as f:
-                    json.dump(data, f)
-            except OSError:
-                pass
 
     def load_window_state(self):
         try:

@@ -35,7 +35,7 @@ class ConfigManager:
             return
 
         try:
-            with open(self.config_file, 'r') as f:
+            with open(self.config_file, 'r', encoding='utf-8') as f:
                 self.config = json.load(f)
         except (json.JSONDecodeError, ValueError) as e:
             # Quarantine the corrupt file so the user can recover values manually.
@@ -58,7 +58,7 @@ class ConfigManager:
                 self._save_timer = None
 
         try:
-            with open(self.config_file, 'w') as f:
+            with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=4)
         except OSError as e:
             print(f"Error saving config: {e}")

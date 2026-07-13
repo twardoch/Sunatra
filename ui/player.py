@@ -535,29 +535,50 @@ class PlayerWidget(ctk.CTkFrame):
             
             self.is_playing = True
             self.play_btn.configure(text="⏸")
-            
-            # Wait for length
-            for _ in range(20):
-                time.sleep(0.05)
-                if self.player.get_length() > 0:
-                    self.duration = self.player.get_length() // 1000
-                    break
-            else:
-                self.duration = 0
-                
+
+            # VLC's get_length() can take up to ~1s to become valid after play().
+            # Resolving it here on the Tk thread froze the whole UI on every track
+            # change, so resolve it off-thread and fill in the duration when ready.
+            self.duration = 0
+
             filename = os.path.basename(filepath)
             title = os.path.splitext(filename)[0].replace('_', ' ')
             self.title_label.configure(text=title[:40]) # Truncate
             artist = os.path.dirname(filepath).split(os.sep)[-1] # Use folder name as artist roughly
             self.artist_label.configure(text=artist)
-            
-            # Update Discord
+
+            # Update Discord (duration filled in later via _resolve_duration_async)
             self.discord.update_presence(title, artist, self.duration, 0, False)
+            self._resolve_duration_async(filepath, title, artist)
 
             return True
         except Exception as e:
             print(f"Play error: {e}")
             return False
+
+    def _resolve_duration_async(self, filepath, title, artist):
+        """Poll VLC for the track length off the UI thread and apply it once
+        available, without blocking playback/UI on track change."""
+        def worker():
+            for _ in range(40):  # up to ~2s
+                if getattr(self, "_destroyed", False) or self.current_file != filepath:
+                    return
+                length = self.player.get_length() if self.player else 0
+                if length and length > 0:
+                    self.after(0, lambda d=length // 1000: self._apply_duration(d, filepath, title, artist))
+                    return
+                time.sleep(0.05)
+        Thread(target=worker, daemon=True).start()
+
+    def _apply_duration(self, duration, filepath, title, artist):
+        # Guard against a track change that happened while we were resolving.
+        if getattr(self, "_destroyed", False) or self.current_file != filepath:
+            return
+        self.duration = duration
+        try:
+            self.discord.update_presence(title, artist, self.duration, 0, False)
+        except Exception:
+            pass
 
     def toggle_playback(self):
         if not self.player or not self.current_file: return
@@ -602,24 +623,48 @@ class PlayerWidget(ctk.CTkFrame):
         texts = ["🔁", "🔁", "🔂"]
         self.repeat_btn.configure(text=texts[self.repeat_mode], text_color=colors[self.repeat_mode])
 
+    def _random_other_index(self):
+        """A random index different from the current one, so shuffle never
+        replays the track that's already playing. Falls back sensibly for
+        empty/single-item playlists or when nothing is playing yet."""
+        n = len(self.playlist)
+        if n <= 1:
+            return 0
+        if not (0 <= self.current_index < n):
+            return random.randrange(n)
+        idx = random.randrange(n - 1)
+        if idx >= self.current_index:
+            idx += 1
+        return idx
+
     def next_song(self):
         if not self.playlist: return
-        
-        new_index = self.current_index + 1
+
         if self.shuffle_mode:
-            new_index = random.randint(0, len(self.playlist) - 1)
-        elif self.repeat_mode == 2:
+            new_index = self._random_other_index()
+        elif self.repeat_mode == 2:  # repeat one
             new_index = self.current_index
-        
-        if new_index >= len(self.playlist):
-            if self.repeat_mode == 1: new_index = 0
-            else: return # Stop
-            
+        else:
+            new_index = self.current_index + 1
+            if new_index >= len(self.playlist):
+                if self.repeat_mode == 1:  # repeat all
+                    new_index = 0
+                else:
+                    return  # reached the end, stop
         self.play_song_at_index(new_index)
 
     def previous_song(self):
-        new_index = self.current_index - 1
-        if new_index < 0: return
+        if not self.playlist: return
+
+        if self.shuffle_mode:
+            new_index = self._random_other_index()
+        else:
+            new_index = self.current_index - 1
+            if new_index < 0:
+                if self.repeat_mode == 1:  # repeat all wraps to the end
+                    new_index = len(self.playlist) - 1
+                else:
+                    return
         self.play_song_at_index(new_index)
 
     def toggle_tag(self, tag):

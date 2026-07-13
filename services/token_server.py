@@ -123,6 +123,10 @@ class TokenServer:
         """Stop the token server."""
         if self._httpd:
             self._httpd.shutdown()
+            # Release the listening socket so a later restart in the same
+            # process doesn't hit "address already in use" on the port.
+            self._httpd.server_close()
+            self._httpd = None
             self._running = False
             logger.info("Token server stopped")
 

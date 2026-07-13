@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 
 # Helpers and Widgets
 from core.utils import truncate_path
-from ui.widgets import SongCard, WorkspaceBrowser, FilterPopup, EmptyStateWidget, FilterBar, FlowLayout, Dropdown
+from ui.widgets import SongCard, EmptyStateWidget, FilterBar, FlowLayout, Dropdown
 from ui.layouts import create_token_dialog
 from core.downloader import SunoDownloader
 from ui.tooltip import ToolTip
@@ -212,16 +212,10 @@ class DownloaderTab(ctk.CTkFrame):
         btn_flow = FlowLayout(action_frame)
         btn_flow.pack(fill="x")
         
-        self.preload_btn = ctk.CTkButton(btn_flow, text="Preload List", command=self.preload_songs, 
-                                         height=32, width=100, fg_color="transparent", border_width=1, border_color="#5a5a5f", 
-                                         text_color="#9aa0a6", hover_color="#3a3a3d", font=("Segoe UI", 12, "bold"),
-                                         corner_radius=8)
-        # We need to add them to flow, but FlowLayout expects widgets to be children of it usually for packing
-        # Actually my FlowLayout implementation doesn't strictly enforce parenting if we pass widget, 
-        # but place() works relative to parent. So YES, they must be children of btn_flow.
-        # Re-parenting buttons to btn_flow
-        self.preload_btn = ctk.CTkButton(btn_flow, text="Preload List", command=self.preload_songs, 
-                                          height=32, width=100, fg_color="transparent", border_width=1, border_color="#5a5a5f", 
+        # FlowLayout places children relative to itself, so buttons must be
+        # parented to btn_flow.
+        self.preload_btn = ctk.CTkButton(btn_flow, text="Preload List", command=self.preload_songs,
+                                          height=32, width=100, fg_color="transparent", border_width=1, border_color="#5a5a5f",
                                           text_color="#9aa0a6", hover_color="#3a3a3d", font=("Segoe UI", 12, "bold"),
                                           corner_radius=8)
         
@@ -262,10 +256,7 @@ class DownloaderTab(ctk.CTkFrame):
         c = self.config_manager
         # Variables were created by layout helpers
         if hasattr(self, 'token_var'): self.token_var.set(c.get("token", ""))
-        
-        # Variables were created by layout helpers
-        if hasattr(self, 'token_var'): self.token_var.set(c.get("token", ""))
-        
+
         # Shared Settings are not loaded into local vars anymore to avoid conflicts
         # They are read directly from config_manager when needed.
 
@@ -281,9 +272,6 @@ class DownloaderTab(ctk.CTkFrame):
         if hasattr(self, 'filter_bar'):
              self.filter_bar.set_filters(self.filter_settings)
              
-        # Restore Workspace/Playlist Button Text
-        
-        
         # Restore Workspace/Playlist Button Text
         ws_name = self.filter_settings.get("workspace_name")
         ws_type = self.filter_settings.get("type")
@@ -647,18 +635,12 @@ class DownloaderTab(ctk.CTkFrame):
         self.after(2000, lambda: self.check_stop_status())
         
     def check_stop_status(self):
-        if not self.downloader.is_stopped() and self.start_btn._state == "disabled":
-             # Still waiting? 
-             pass
-        else:
-             # Just in case
-             if self.start_btn._state == "disabled" and not self.downloader.is_stopped(): 
-                 # This means thread might have died silently?
-                 pass
-             elif self.start_btn._state == "disabled":
-                 # Re-enable if stuck
-                 self.toggle_inputs(True)
-                 self.update_status("Stopped", "normal")
+        # Safety net: if the download has stopped but the UI is still in its
+        # disabled "downloading" state (worker didn't fire on_download_complete),
+        # re-enable the inputs.
+        if self.downloader.is_stopped() and self.start_btn._state == "disabled":
+            self.toggle_inputs(True)
+            self.update_status("Stopped", "normal")
 
     def _configure_downloader(self, scan_only):
         c = self.config_manager

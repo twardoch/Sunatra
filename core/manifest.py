@@ -19,6 +19,12 @@ import time
 import appdirs
 
 
+def _utc_timestamp() -> str:
+    """Current UTC time as an ISO-8601 string with a trailing ``Z``.
+    Uses timezone-aware ``now(utc)`` (``utcnow()`` is deprecated in 3.12+)."""
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 SCHEMA_VERSION = 1
 
 # Match ConfigManager's debounce window — same rationale (rapid set() bursts
@@ -137,7 +143,7 @@ class LibraryManifest:
                 "artist": artist,
                 "filepath": filepath,
                 "location": location,
-                "downloaded_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+                "downloaded_at": _utc_timestamp(),
             }
         self._schedule_save()
 
@@ -170,7 +176,7 @@ class LibraryManifest:
             self.trashed[uuid] = {
                 "title": title or existing.get("title", ""),
                 "artist": artist or existing.get("artist", ""),
-                "trashed_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+                "trashed_at": _utc_timestamp(),
             }
         self._schedule_save()
 
@@ -281,7 +287,7 @@ class LibraryManifest:
                         "artist": "",
                         "filepath": filepath,
                         "location": location,
-                        "downloaded_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+                        "downloaded_at": _utc_timestamp(),
                     }
                     added += 1
                 else:

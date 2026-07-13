@@ -8,8 +8,8 @@ import customtkinter as ctk
 import subprocess
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from ui.widgets import SongCard, LibraryRow
-from core.utils import read_song_metadata
+from ui.widgets import LibraryRow
+from core.utils import read_song_metadata, open_file
 
 logger = logging.getLogger(__name__)
 
@@ -239,19 +239,6 @@ class LibraryTab(ctk.CTkFrame):
             self.is_scanning = False
             self.refresh_btn.configure(state="normal")
 
-    def _garbage_collect_widgets(self, widgets):
-        # Destroy in chunks
-        chunk = widgets[:50]
-        remainder = widgets[50:]
-        
-        for w in chunk:
-            try:
-                if w.winfo_exists(): w.destroy()
-            except: pass
-            
-        if remainder:
-            self.after(50, lambda: self._garbage_collect_widgets(remainder))
-
     def _scan_thread(self):
         """Background thread that walks the download folder and reads metadata."""
         new_songs = []
@@ -366,11 +353,9 @@ class LibraryTab(ctk.CTkFrame):
             if hasattr(self, 'empty_state') and self.empty_state.winfo_exists():
                 self.empty_state.pack_forget()
         
-        # Render rows
+        # Render rows. Titles are already cleaned at scan time by
+        # read_song_metadata -> get_display_title, so no re-clean here.
         for i, song in enumerate(page_items):
-            if 'title' in song:
-                from core.utils import clean_title
-                song['title'] = clean_title(song['title'])
             self._add_row(self.scroll_frame, song, start + i)
             
         # Update controls

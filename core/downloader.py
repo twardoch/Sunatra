@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import threading
 import re
 
-from core.utils import RateLimiter, get_downloaded_uuids, embed_metadata, sanitize_filename, get_unique_filename, reserve_unique_path
+from core.utils import RateLimiter, get_downloaded_uuids, embed_metadata, sanitize_filename, reserve_unique_path
 
 GEN_API_BASE = "https://studio-api.prod.suno.com"
 
@@ -501,9 +501,7 @@ class SunoDownloader:
                              continue
                              
                         title = song_data.get("title", "") or "Unknown Title"
-                        if title == "Unknown Title" and not song_data.get("id"):
-                             continue
-                        
+
                         # Robust Liked Check
                         is_liked_bool = song_data.get("is_liked", False)
                         reaction = song_data.get("reaction", {}) 

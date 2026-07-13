@@ -4,9 +4,6 @@ from PIL import Image
 from io import BytesIO
 import os
 
-def hex_to_rgb(value):
-    value = value.lstrip('#')
-    return tuple(int(value[i:i+2], 16) for i in (0, 2, 4))
 
 class CollapsibleCard(ctk.CTkFrame):
     def __init__(self, parent, title, bg_color=None, corner_radius=6, padding=10, collapsed=True, **kwargs):
@@ -792,10 +789,16 @@ class FilterBar(ctk.CTkFrame):
         self.on_change(new_settings)
 
     def set_filters(self, settings):
-        for key, val in settings.items():
+        # Iterate a snapshot: var.set() fires the trace -> _notify_change ->
+        # on_change, which writes back into this same dict (it's the caller's
+        # filter_settings), so iterating settings.items() directly raises
+        # "dictionary changed size during iteration".
+        for key, val in list(settings.items()):
             if key in self.vars:
-                try: self.vars[key].set(val)
-                except: pass
+                try:
+                    self.vars[key].set(val)
+                except Exception:
+                    pass
 
 
 class Dropdown(ctk.CTkToplevel):
