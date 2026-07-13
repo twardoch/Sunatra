@@ -3,31 +3,41 @@ from PIL import ImageFont
 
 class ThemeManager:
     def __init__(self):
-        # --- Spotify-Inspired Dark Mode Palette ---
-        self.bg_dark = "#121212"        # Main background
-        self.bg_sidebar = "#0a0a0a"     # Sidebar background (darker)
-        self.card_bg = "#181818"        # Elevated surfaces (cards, panels)
+        # --- Dubhaimid Dark Palette (house "corporate" MUI theme) ---
+        # Mirrors hyb-electron-template/src/renderer/src/themes/dubhaimid.ts:
+        # neutral charcoal surfaces, light-gray text, a single muted steel-blue
+        # accent, flat borders, no shadows. Tkinter can't do rgba, so the
+        # translucent MUI dividers/borders are flattened to opaque hex here.
+        self.bg_dark = "#1e1e1e"        # background.default
+        self.bg_sidebar = "#1a1a1b"     # paperDark (sidebar, darkest surface)
+        self.card_bg = "#252526"        # paper (cards, panels)
         self.bg_card = self.card_bg     # Alias
-        self.bg_input = "#272727"       # Input fields
-        self.hover_row = "#2A2A2A"      # Row hover highlight
-        self.player_bg = "#181818"      # Player bar background
+        self.bg_input = "#2d2d30"       # paperLight (input fields)
+        self.hover_row = "#2a2a2b"      # tableDark (row hover highlight)
+        self.player_bg = "#1a1a1b"      # paperDark (player bar background)
 
-        self.fg_primary = "#FFFFFF"     # Pure white — headers, active items
-        self.fg_secondary = "#B3B3B3"   # Light gray — secondary text, inactive items
+        self.fg_primary = "#e0e0e0"     # text.primary (light gray, not pure white)
+        self.fg_secondary = "#9aa0a6"   # text.secondary
 
-        self.accent_purple = "#8B5CF6"  # Primary action (Vibrant Violet)
-        self.accent_purple_hover = "#7C3AED"  # Hover state
-        self.accent_pink = "#EC4899"    # Secondary accent
-        self.accent_red = "#EF4444"     # Destructive action
-        self.accent_green = "#22C55E"   # Success / Keep
-        self.accent_yellow = "#EAB308"  # Star / Favorite
+        # Accent kept under the legacy *_purple names so existing call sites
+        # keep working, but the value is now the Dubhaimid steel-blue primary.
+        self.accent_purple = "#5c8bc4"        # primary.main
+        self.accent_purple_hover = "#3f6a9e"  # primary.dark (hover)
+        self.accent_pink = "#82a9d6"    # secondary accent -> primary.light
+        self.accent_red = "#f44336"     # error / destructive
+        self.accent_green = "#66bb6a"   # success / keep
+        self.accent_yellow = "#ffa726"  # warning / star / favorite
 
-        self.border_subtle = "#333333"  # Subtle borders
-        self.card_border = "#333333"    # Card borders
-        self.pill_inactive = "#333333"  # Inactive pill/chip background
+        # Chrome navy shared by both corporate themes (title-bar family color).
+        self.accent_navy = "#0a246a"        # secondary.main
+        self.accent_navy_light = "#2f4f8f"  # secondary.light
 
-        # --- Typography (Inter with Segoe UI fallback) ---
-        self.font_family = "Inter"
+        self.border_subtle = "#3a3a3d"  # divider (rgba(255,255,255,0.12) flattened)
+        self.card_border = "#3a3a3d"    # Card borders
+        self.pill_inactive = "#3e3e42"  # chip background / inactive pill
+
+        # --- Typography (Segoe UI — matches the house plainTypography stack) ---
+        self.font_family = "Segoe UI"
         self.font_fallback = "Segoe UI"
 
         self.section_font = (self.font_family, 11, "bold")

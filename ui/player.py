@@ -33,7 +33,7 @@ class _NullDiscord:
 class PlayerWidget(ctk.CTkFrame):
     """Audio player widget with playback controls."""
     
-    def __init__(self, parent, bg_color="#18181b", **kwargs):
+    def __init__(self, parent, bg_color="#252526", **kwargs):
         super().__init__(parent, fg_color=bg_color, corner_radius=0, height=90, **kwargs)
         
         # VLC Setup
@@ -162,8 +162,8 @@ class PlayerWidget(ctk.CTkFrame):
         # Album Art (56x56, rounded)
         self.album_art_label = ctk.CTkLabel(self.info_frame, text="🎵",
                                             width=56, height=56,
-                                            fg_color="#272727", corner_radius=6,
-                                            font=("Inter", 20))
+                                            fg_color="#2d2d30", corner_radius=6,
+                                            font=("Segoe UI", 20))
         self.album_art_label.pack(side="left", padx=(0, 12))
 
         # Text info (title + artist stacked)
@@ -171,13 +171,13 @@ class PlayerWidget(ctk.CTkFrame):
         self.text_frame.pack(side="left", fill="y", pady=4)
 
         self.title_label = ctk.CTkLabel(self.text_frame, text="Ready",
-                                        font=("Inter", 14, "bold"),
+                                        font=("Segoe UI", 14, "bold"),
                                         text_color="#FFFFFF", anchor="w")
         self.title_label.pack(anchor="w")
 
         self.artist_label = ctk.CTkLabel(self.text_frame, text="Select a song",
-                                         font=("Inter", 12),
-                                         text_color="#B3B3B3", anchor="w")
+                                         font=("Segoe UI", 12),
+                                         text_color="#9aa0a6", anchor="w")
         self.artist_label.pack(anchor="w")
 
         # --- Center: Playback Controls ---
@@ -189,35 +189,35 @@ class PlayerWidget(ctk.CTkFrame):
 
         # Shuffle
         self.shuffle_btn = ctk.CTkButton(self.controls_frame, text="🔀", width=32,
-                                         fg_color="transparent", text_color="#B3B3B3",
-                                         hover_color="#2A2A2A", command=self.toggle_shuffle)
+                                         fg_color="transparent", text_color="#9aa0a6",
+                                         hover_color="#2a2a2b", command=self.toggle_shuffle)
         self.shuffle_btn.pack(side="left", padx=3)
 
         # Previous
         self.prev_btn = ctk.CTkButton(self.controls_frame, text="⏮", width=36,
                                       fg_color="transparent", text_color="#FFFFFF",
-                                      hover_color="#2A2A2A", font=("Inter", 18),
+                                      hover_color="#2a2a2b", font=("Segoe UI", 18),
                                       command=self.previous_song)
         self.prev_btn.pack(side="left", padx=3)
 
         # Play/Pause (circular purple button)
         self.play_btn = ctk.CTkButton(self.controls_frame, text="▶", width=42, height=42,
-                                      corner_radius=21, fg_color="#8B5CF6",
-                                      text_color="white", hover_color="#7C3AED",
-                                      font=("Inter", 20), command=self.toggle_playback)
+                                      corner_radius=21, fg_color="#5c8bc4",
+                                      text_color="white", hover_color="#3f6a9e",
+                                      font=("Segoe UI", 20), command=self.toggle_playback)
         self.play_btn.pack(side="left", padx=8)
 
         # Next
         self.next_btn = ctk.CTkButton(self.controls_frame, text="⏭", width=36,
                                       fg_color="transparent", text_color="#FFFFFF",
-                                      hover_color="#2A2A2A", font=("Inter", 18),
+                                      hover_color="#2a2a2b", font=("Segoe UI", 18),
                                       command=self.next_song)
         self.next_btn.pack(side="left", padx=3)
 
         # Repeat
         self.repeat_btn = ctk.CTkButton(self.controls_frame, text="🔁", width=32,
-                                        fg_color="transparent", text_color="#B3B3B3",
-                                        hover_color="#2A2A2A", command=self.toggle_repeat)
+                                        fg_color="transparent", text_color="#9aa0a6",
+                                        hover_color="#2a2a2b", command=self.toggle_repeat)
         self.repeat_btn.pack(side="left", padx=3)
 
         # --- Right: Volume, Tags, Utility Icons ---
@@ -226,40 +226,40 @@ class PlayerWidget(ctk.CTkFrame):
 
         # Tags (keep/trash/star)
         self.tag_btns = {}
-        tags = [("👍", "keep", "#22c55e"), ("🗑️", "trash", "#ef4444"), ("⭐", "star", "#eab308")]
+        tags = [("👍", "keep", "#66bb6a"), ("🗑️", "trash", "#f44336"), ("⭐", "star", "#ffa726")]
 
         for icon, tag, color in tags:
             btn = ctk.CTkButton(self.right_frame, text=icon, width=30,
-                                fg_color="transparent", hover_color="#2A2A2A",
+                                fg_color="transparent", hover_color="#2a2a2b",
                                 command=lambda t=tag: self.toggle_tag(t))
             btn.pack(side="left", padx=1)
             self.tag_btns[tag] = (btn, color)
 
         # Time label
         self.time_label = ctk.CTkLabel(self.right_frame, text="0:00 / 0:00",
-                                       text_color="#B3B3B3", font=("Inter", 11))
+                                       text_color="#9aa0a6", font=("Segoe UI", 11))
         self.time_label.pack(side="left", padx=(10, 8))
 
         # Lyrics button
         self.lyrics_btn = ctk.CTkButton(self.right_frame, text="🎤", width=28,
-                                        fg_color="transparent", hover_color="#2A2A2A",
+                                        fg_color="transparent", hover_color="#2a2a2b",
                                         command=self.toggle_lyrics)
         self.lyrics_btn.pack(side="left", padx=2)
 
         # Mini Mode
         self.mini_btn = ctk.CTkButton(self.right_frame, text="⤢", width=28,
-                                     fg_color="transparent", hover_color="#2A2A2A",
+                                     fg_color="transparent", hover_color="#2a2a2b",
                                      command=self.toggle_mini_mode)
         self.mini_btn.pack(side="left", padx=2)
 
         # Volume
         self.vol_icon = ctk.CTkLabel(self.right_frame, text="🔊",
-                                     font=("Inter", 12))
+                                     font=("Segoe UI", 12))
         self.vol_icon.pack(side="left", padx=(8, 2))
 
         self.volume_slider = ctk.CTkSlider(self.right_frame, from_=0, to=100, width=90,
-                                           progress_color="#8B5CF6",
-                                           button_color="#FFFFFF", button_hover_color="#B3B3B3",
+                                           progress_color="#5c8bc4",
+                                           button_color="#FFFFFF", button_hover_color="#9aa0a6",
                                            command=self.on_volume_change)
         self.volume_slider.set(70)
         self.volume_slider.pack(side="left", padx=(0, 5))
@@ -271,9 +271,9 @@ class PlayerWidget(ctk.CTkFrame):
         self.seek_var = ctk.DoubleVar(value=0)
         self.seeker = ctk.CTkSlider(self, from_=0, to=100, variable=self.seek_var,
                                     command=self.on_seek, height=4,
-                                    progress_color="#8B5CF6", button_color="#8B5CF6",
-                                    button_hover_color="#7C3AED",
-                                    fg_color="#333333")
+                                    progress_color="#5c8bc4", button_color="#5c8bc4",
+                                    button_hover_color="#3f6a9e",
+                                    fg_color="#3a3a3d")
         self.seeker.pack(fill="x", padx=0, pady=(0, 0), side="bottom")
 
     # --- Logic ---
@@ -327,7 +327,7 @@ class PlayerWidget(ctk.CTkFrame):
 
     def enable_mini_layout(self):
         # 1. Container Style (600x80)
-        self.configure(border_width=1, border_color="#333333")
+        self.configure(border_width=1, border_color="#3a3a3d")
         
         # Reset Packing to ensure order
         self.bar.pack_forget()
@@ -349,15 +349,15 @@ class PlayerWidget(ctk.CTkFrame):
         self.info_frame.grid_configure(row=0, column=0, sticky="ew", padx=15)
         # Ensure text labels are visible
         self.album_art_label.pack_forget() # Hide art
-        self.title_label.configure(font=("Inter", 13, "bold"), text_color="white") 
-        self.artist_label.configure(font=("Inter", 11), text_color="gray") 
+        self.title_label.configure(font=("Segoe UI", 13, "bold"), text_color="white") 
+        self.artist_label.configure(font=("Segoe UI", 11), text_color="gray") 
         
         # 6. Center Section (Col 1)
         self.controls_frame.grid_configure(row=0, column=1)
         self.shuffle_btn.pack_forget()
         self.repeat_btn.pack_forget()
         
-        self.play_btn.configure(width=40, height=40, corner_radius=20, fg_color="#8b5cf6")
+        self.play_btn.configure(width=40, height=40, corner_radius=20, fg_color="#5c8bc4")
         self.prev_btn.configure(width=30, height=30, fg_color="transparent")
         self.next_btn.configure(width=30, height=30, fg_color="transparent")
         
@@ -398,8 +398,8 @@ class PlayerWidget(ctk.CTkFrame):
         # Restore Left Info
         self.info_frame.grid_configure(padx=(0, 5))
         self.album_art_label.pack(side="left", padx=(0, 10), before=self.text_frame)
-        self.title_label.configure(font=("Inter", 14, "bold"))
-        self.artist_label.configure(font=("Inter", 12))
+        self.title_label.configure(font=("Segoe UI", 14, "bold"))
+        self.artist_label.configure(font=("Segoe UI", 12))
         
         # Restore Controls
         self.play_btn.configure(width=42, height=42, corner_radius=21)
@@ -476,7 +476,7 @@ class PlayerWidget(ctk.CTkFrame):
         
         if not image_url:
             # Show placeholder
-            self.album_art_label.configure(image=None, text="🎵", font=("Inter", 24))
+            self.album_art_label.configure(image=None, text="🎵", font=("Segoe UI", 24))
             return
         
         # Check cache first
@@ -515,7 +515,7 @@ class PlayerWidget(ctk.CTkFrame):
             self.album_art_label.configure(image=ctk_image, text="")
         except Exception as e:
             print(f"Failed to display album art: {e}")
-            self.album_art_label.configure(image=None, text="🎵", font=("Inter", 24))
+            self.album_art_label.configure(image=None, text="🎵", font=("Segoe UI", 24))
 
     def play_file(self, filepath):
         if not VLC_AVAILABLE or not self.player:
@@ -594,11 +594,11 @@ class PlayerWidget(ctk.CTkFrame):
 
     def toggle_shuffle(self):
         self.shuffle_mode = not self.shuffle_mode
-        self.shuffle_btn.configure(text_color="#8b5cf6" if self.shuffle_mode else "gray")
+        self.shuffle_btn.configure(text_color="#5c8bc4" if self.shuffle_mode else "gray")
 
     def toggle_repeat(self):
         self.repeat_mode = (self.repeat_mode + 1) % 3
-        colors = ["gray", "#8b5cf6", "#d946ef"]
+        colors = ["gray", "#5c8bc4", "#82a9d6"]
         texts = ["🔁", "🔁", "🔂"]
         self.repeat_btn.configure(text=texts[self.repeat_mode], text_color=colors[self.repeat_mode])
 

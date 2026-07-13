@@ -9,7 +9,7 @@ def hex_to_rgb(value):
     return tuple(int(value[i:i+2], 16) for i in (0, 2, 4))
 
 class CollapsibleCard(ctk.CTkFrame):
-    def __init__(self, parent, title, bg_color=None, corner_radius=12, padding=10, collapsed=True, **kwargs):
+    def __init__(self, parent, title, bg_color=None, corner_radius=6, padding=10, collapsed=True, **kwargs):
         super().__init__(parent, corner_radius=corner_radius, fg_color=bg_color, **kwargs)
         self.title = title
         self.collapsed = collapsed
@@ -23,7 +23,7 @@ class CollapsibleCard(ctk.CTkFrame):
             fg_color="transparent", 
             hover_color=("gray75", "gray25"),
             anchor="w",
-            font=("Inter", 11, "bold"),
+            font=("Segoe UI", 11, "bold"),
             height=30
         )
         self.header_btn.pack(fill="x", padx=5, pady=5)
@@ -73,7 +73,7 @@ class SongCard(ctk.CTkFrame):
             self.set_thumbnail(thumbnail_data)
             
         display_title = title if len(title) < 40 else title[:37] + "..."
-        self.title_label = ctk.CTkLabel(self, text=display_title, font=("Inter", 14, "bold"), anchor="w")
+        self.title_label = ctk.CTkLabel(self, text=display_title, font=("Segoe UI", 14, "bold"), anchor="w")
         self.title_label.grid(row=0, column=2, sticky="ew", padx=5, pady=(5, 0))
         
         # Subtitle: tags · YYYY-MM-DD · short-uuid. The date + short UUID
@@ -90,10 +90,10 @@ class SongCard(ctk.CTkFrame):
             parts.append(uuid[:8])
         subtitle = " · ".join(parts) if parts else "Unknown"
         display_subtitle = subtitle if len(subtitle) <= 80 else subtitle[:77] + "..."
-        self.subtitle_label = ctk.CTkLabel(self, text=display_subtitle, font=("Inter", 12), text_color="gray", anchor="w")
+        self.subtitle_label = ctk.CTkLabel(self, text=display_subtitle, font=("Segoe UI", 12), text_color="gray", anchor="w")
         self.subtitle_label.grid(row=1, column=2, sticky="ew", padx=5, pady=(0, 5))
         
-        self.status_label = ctk.CTkLabel(self, text="Waiting", font=("Inter", 12))
+        self.status_label = ctk.CTkLabel(self, text="Waiting", font=("Segoe UI", 12))
         self.status_label.grid(row=0, column=3, padx=10, pady=5, sticky="e")
         
         self.progress_bar = ctk.CTkProgressBar(self, width=100)
@@ -104,7 +104,7 @@ class SongCard(ctk.CTkFrame):
             self.ignore_btn = ctk.CTkButton(
                 self, text="🚫", width=32, height=28,
                 fg_color="transparent", hover_color="#7f1d1d",
-                text_color="#94a3b8", font=("Inter", 12),
+                text_color="#9aa0a6", font=("Segoe UI", 12),
                 command=self._handle_ignore,
             )
             self.ignore_btn.grid(row=0, column=5, rowspan=2, padx=(2, 8), pady=5)
@@ -126,16 +126,16 @@ class SongCard(ctk.CTkFrame):
         if not self.winfo_exists(): return
         self.status_label.configure(text=status)
         if status == "Downloading":
-            self.status_label.configure(text_color=("blue", "#3b82f6"))
+            self.status_label.configure(text_color=("blue", "#5c8bc4"))
             self.progress_bar.grid(row=1, column=3, padx=10, sticky="e")
             if progress is not None:
                 self.progress_bar.set(progress / 100)
         elif status == "Complete":
-            self.status_label.configure(text_color=("green", "#22c55e"))
+            self.status_label.configure(text_color=("green", "#66bb6a"))
             self.progress_bar.grid_forget()
             self.action_btn.grid(row=0, column=4, rowspan=2, padx=5)
         elif status == "Error":
-            self.status_label.configure(text_color=("red", "#ef4444"))
+            self.status_label.configure(text_color=("red", "#f44336"))
             self.progress_bar.grid_forget()
         else:
             self.status_label.configure(text_color="gray")
@@ -200,13 +200,13 @@ class FilterPopup(ctk.CTkToplevel):
         self.lift()
         self.focus_force()
         
-        ctk.CTkLabel(self, text="Filter Settings", font=("Inter", 20, "bold")).pack(pady=15)
+        ctk.CTkLabel(self, text="Filter Settings", font=("Segoe UI", 20, "bold")).pack(pady=15)
         
         scroll_frame = ctk.CTkScrollableFrame(self)
         scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         # --- Section 1: Tags ---
-        ctk.CTkLabel(scroll_frame, text="Tags", font=("Inter", 14, "bold"), text_color="gray").pack(anchor="w", pady=(5,0))
+        ctk.CTkLabel(scroll_frame, text="Tags", font=("Segoe UI", 14, "bold"), text_color="gray").pack(anchor="w", pady=(5,0))
         
         ctk.CTkLabel(scroll_frame, text="Include (comma separated)").pack(anchor="w")
         self.tags_include = ctk.CTkEntry(scroll_frame)
@@ -222,19 +222,19 @@ class FilterPopup(ctk.CTkToplevel):
 
         # --- Section 2: Active Workspace ---
         if self.active_workspace_name:
-            ctk.CTkLabel(scroll_frame, text="Workspace", font=("Inter", 14, "bold"), text_color="gray").pack(anchor="w", pady=(15,5))
+            ctk.CTkLabel(scroll_frame, text="Workspace", font=("Segoe UI", 14, "bold"), text_color="gray").pack(anchor="w", pady=(15,5))
             
             ws_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
             ws_frame.pack(fill="x")
             
-            self.ws_label = ctk.CTkLabel(ws_frame, text=f"📂 {self.active_workspace_name}", font=("Inter", 12), text_color="#a8a29e")
+            self.ws_label = ctk.CTkLabel(ws_frame, text=f"📂 {self.active_workspace_name}", font=("Segoe UI", 12), text_color="#9aa0a6")
             self.ws_label.pack(side="left")
             
-            ctk.CTkButton(ws_frame, text="Clear", width=60, height=24, fg_color="#ef4444", hover_color="#991b1b",
+            ctk.CTkButton(ws_frame, text="Clear", width=60, height=24, fg_color="#f44336", hover_color="#b71c1c",
                           command=self._clear_workspace).pack(side="right")
 
         # --- Section 3: Status (Checkboxes) ---
-        ctk.CTkLabel(scroll_frame, text="Status", font=("Inter", 14, "bold"), text_color="gray").pack(anchor="w", pady=(15,0))
+        ctk.CTkLabel(scroll_frame, text="Status", font=("Segoe UI", 14, "bold"), text_color="gray").pack(anchor="w", pady=(15,0))
         
         status_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         status_frame.pack(fill="x", pady=5)
@@ -257,7 +257,7 @@ class FilterPopup(ctk.CTkToplevel):
         add_cb("trashed", "Trash", False, 3, 0)
 
         # --- Section 4: Type (Radio) ---
-        ctk.CTkLabel(scroll_frame, text="Type", font=("Inter", 14, "bold"), text_color="gray").pack(anchor="w", pady=(15,0))
+        ctk.CTkLabel(scroll_frame, text="Type", font=("Segoe UI", 14, "bold"), text_color="gray").pack(anchor="w", pady=(15,0))
         
         self.type_var = ctk.StringVar(value=current_filters.get("type", "all"))
         
@@ -276,7 +276,7 @@ class FilterPopup(ctk.CTkToplevel):
         
     def _clear_workspace(self):
         self.clear_workspace_flag = True
-        self.ws_label.configure(text="✓ Cleared", text_color="#10b981")
+        self.ws_label.configure(text="✓ Cleared", text_color="#66bb6a")
 
     def apply(self):
         filters = {
@@ -297,7 +297,7 @@ class FilterPopup(ctk.CTkToplevel):
 
 
 class WorkspaceBrowser(ctk.CTkToplevel):
-    def __init__(self, parent, workspaces, on_select, bg_color="#1a1a1a", fg_color="#ffffff", accent_color="#8b5cf6", title="Select Workspace"):
+    def __init__(self, parent, workspaces, on_select, bg_color="#1e1e1e", fg_color="#ffffff", accent_color="#5c8bc4", title="Select Workspace"):
         super().__init__(parent)
         self.title(title)
         self.geometry("400x500")
@@ -306,7 +306,7 @@ class WorkspaceBrowser(ctk.CTkToplevel):
         self.focus_force()
         self.on_select = on_select
         
-        ctk.CTkLabel(self, text=title, font=("Inter", 16, "bold")).pack(pady=10)
+        ctk.CTkLabel(self, text=title, font=("Segoe UI", 16, "bold")).pack(pady=10)
         
         scroll_frame = ctk.CTkScrollableFrame(self)
         scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -321,9 +321,9 @@ class WorkspaceBrowser(ctk.CTkToplevel):
         date = ws.get('updated_at', '')[:10]
         
         card = ctk.CTkButton(parent, text=f"{name}\n{count} Songs • {date}", 
-                             font=("Inter", 12),
-                             fg_color="transparent", border_width=1, border_color="#333",
-                             hover_color="#333", anchor="w",
+                             font=("Segoe UI", 12),
+                             fg_color="transparent", border_width=1, border_color="#3a3a3d",
+                             hover_color="#3a3a3d", anchor="w",
                              command=lambda: self._select(ws))
         card.pack(fill="x", pady=2)
         
@@ -336,7 +336,7 @@ class NeonProgressBar(ctk.CTkProgressBar):
     # Simple wrapper to match interface, or we just use normal progressbar
     def __init__(self, parent, height=10, colors=None, **kwargs):
         super().__init__(parent, height=height, **kwargs)
-        self.configure(progress_color="#8b5cf6") # Purple
+        self.configure(progress_color="#5c8bc4") # Purple
         
     def start(self, interval=20):
         self.configure(mode="indeterminate")
@@ -358,24 +358,24 @@ class EmptyStateWidget(ctk.CTkFrame):
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.place(relx=0.5, rely=0.5, anchor="center")
         
-        ctk.CTkLabel(container, text="♪", font=("Inter", 64), text_color="gray").pack(pady=(0, 16))
-        ctk.CTkLabel(container, text="Ready to Sync", font=("Inter", 14, "bold"), text_color="gray").pack()
-        ctk.CTkLabel(container, text="Click 'Preload List' or 'Start Download' to begin", font=("Inter", 10), text_color="gray").pack(pady=(8, 0))
+        ctk.CTkLabel(container, text="♪", font=("Segoe UI", 64), text_color="gray").pack(pady=(0, 16))
+        ctk.CTkLabel(container, text="Ready to Sync", font=("Segoe UI", 14, "bold"), text_color="gray").pack()
+        ctk.CTkLabel(container, text="Click 'Preload List' or 'Start Download' to begin", font=("Segoe UI", 10), text_color="gray").pack(pady=(8, 0))
 
 
 class LibraryRow(ctk.CTkFrame):
     def __init__(self, parent, data, on_play=None, on_menu=None, odd_row=False, on_click=None, **kwargs):
         # Uniform background — no alternating stripes
-        bg_color = "#181818"
+        bg_color = "#252526"
         super().__init__(parent, fg_color=bg_color, corner_radius=0, height=35, **kwargs)
         self.data = data
         self.on_play = on_play
         self.on_menu = on_menu
         self.on_click_callback = on_click
         self.default_bg = bg_color
-        self.selected_bg = "#8B5CF6"  # Purple accent (matching theme)
+        self.selected_bg = "#5c8bc4"  # Purple accent (matching theme)
         self.is_selected = False
-        self.hover_bg = "#252525"
+        self.hover_bg = "#2d2d30"
 
 
         # Configure grid columns to match header exactly
@@ -427,7 +427,7 @@ class LibraryRow(ctk.CTkFrame):
             except: pass
 
         self.title_lbl = ctk.CTkLabel(self.title_frame, text=title_display, anchor="w",
-                                      font=("Inter", 11), text_color="#FFFFFF")
+                                      font=("Segoe UI", 11), text_color="#FFFFFF")
         self.title_lbl.pack(side="left", fill="x", expand=True)
 
         if title_truncated:
@@ -442,7 +442,7 @@ class LibraryRow(ctk.CTkFrame):
         else:
             artist_display = artist
         self.artist_lbl = ctk.CTkLabel(self, text=artist_display, anchor="w",
-                                       font=("Inter", 11), text_color="#B3B3B3")
+                                       font=("Segoe UI", 11), text_color="#9aa0a6")
         self.artist_lbl.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
         if artist_truncated:
             ToolTip(self.artist_lbl, artist)
@@ -457,7 +457,7 @@ class LibraryRow(ctk.CTkFrame):
         else:
             genre_display = genre_str
         self.genre_lbl = ctk.CTkLabel(self, text=genre_display, anchor="w",
-                                      font=("Inter", 11), text_color="#B3B3B3")
+                                      font=("Segoe UI", 11), text_color="#9aa0a6")
         self.genre_lbl.grid(row=0, column=2, sticky="ew", padx=5, pady=5)
         if genre_truncated:
             ToolTip(self.genre_lbl, genre_str)
@@ -465,7 +465,7 @@ class LibraryRow(ctk.CTkFrame):
         # 4. BPM
         bpm = data.get("bpm", "--")
         self.bpm_lbl = ctk.CTkLabel(self, text=str(bpm), anchor="center",
-                                    font=("Inter", 11), text_color="#B3B3B3")
+                                    font=("Segoe UI", 11), text_color="#9aa0a6")
         self.bpm_lbl.grid(row=0, column=3, sticky="ew", padx=5, pady=5)
 
         # 5. Duration
@@ -473,7 +473,7 @@ class LibraryRow(ctk.CTkFrame):
         mins, secs = divmod(dur_sec, 60)
         dur_str = f"{int(mins)}:{int(secs):02d}"
         self.dur_lbl = ctk.CTkLabel(self, text=dur_str, anchor="e",
-                                    font=("Inter", 11), text_color="#B3B3B3")
+                                    font=("Segoe UI", 11), text_color="#9aa0a6")
         self.dur_lbl.grid(row=0, column=4, sticky="ew", padx=(5, 10), pady=5)
         
         # Events
@@ -536,22 +536,22 @@ class BubbleButton(ctk.CTkButton):
         self._is_active = False
 
         # Theme Colors
-        self.col_default = "#1e293b" # slate-800/50 approx
-        self.col_hover = "#334155"   # slate-700
-        self.col_active = "#4c1d95"  # violet-900 (darker base for visibility) -> bg-violet-500/20
-        self.col_active_bg = "#2e243f" 
+        self.col_default = "#252526" # slate-800/50 approx
+        self.col_hover = "#3a3a3d"   # slate-700
+        self.col_active = "#3f6a9e"  # violet-900 (darker base for visibility) -> bg-violet-500/20
+        self.col_active_bg = "#26333f" 
         
-        self.text_default = "#94a3b8" # slate-400
-        self.text_active = "#c4b5fd"  # violet-300
+        self.text_default = "#9aa0a6" # slate-400
+        self.text_active = "#82a9d6"  # violet-300
         
-        self.border_default = "#334155" # slate-700/50
-        self.border_active = "#8b5cf6"  # violet-500
+        self.border_default = "#3a3a3d" # slate-700/50
+        self.border_active = "#5c8bc4"  # violet-500
 
         super().__init__(parent, text=text, 
                          height=24, # Smaller height
-                         corner_radius=12,
+                         corner_radius=6,
                          border_width=1,
-                         font=("Inter", 11, "bold"), # Smaller font
+                         font=("Segoe UI", 11, "bold"), # Smaller font
                          fg_color=self.col_default,
                          text_color=self.text_default,
                          border_color=self.border_default,
@@ -693,15 +693,15 @@ class FilterBar(ctk.CTkFrame):
         inc_frame = ctk.CTkFrame(tags_frame, fg_color="transparent")
         inc_frame.grid(row=0, column=0, sticky="ew", padx=(0, 5))
         
-        ctk.CTkLabel(inc_frame, text="Include Tags", font=("Inter", 11, "bold"), text_color="#cbd5e1").pack(anchor="w", pady=(0, 2))
+        ctk.CTkLabel(inc_frame, text="Include Tags", font=("Segoe UI", 11, "bold"), text_color="#c4c8cc").pack(anchor="w", pady=(0, 2))
         ti_entry = ctk.CTkEntry(inc_frame, textvariable=self.vars["tags_include"], 
                                 placeholder_text="e.g. ambient, piano",
                                 placeholder_text_color="gray50",
                                 height=28, # Slimmer
-                                fg_color="#0f172a", 
-                                border_color="#1e293b",
-                                text_color="#e2e8f0",
-                                font=("Inter", 11))
+                                fg_color="#1e1e1e", 
+                                border_color="#252526",
+                                text_color="#e0e0e0",
+                                font=("Segoe UI", 11))
         ti_entry.pack(fill="x")
         
         # Exclude
@@ -711,15 +711,15 @@ class FilterBar(ctk.CTkFrame):
         exc_frame = ctk.CTkFrame(tags_frame, fg_color="transparent")
         exc_frame.grid(row=0, column=1, sticky="ew", padx=(5, 0))
         
-        ctk.CTkLabel(exc_frame, text="Exclude Tags", font=("Inter", 11, "bold"), text_color="#cbd5e1").pack(anchor="w", pady=(0, 2))
+        ctk.CTkLabel(exc_frame, text="Exclude Tags", font=("Segoe UI", 11, "bold"), text_color="#c4c8cc").pack(anchor="w", pady=(0, 2))
         te_entry = ctk.CTkEntry(exc_frame, textvariable=self.vars["tags_exclude"], 
                                 placeholder_text="e.g. vocals, drums",
                                 placeholder_text_color="gray50",
                                 height=28, # Slimmer
-                                fg_color="#0f172a", 
-                                border_color="#1e293b",
-                                text_color="#e2e8f0",
-                                font=("Inter", 11))
+                                fg_color="#1e1e1e", 
+                                border_color="#252526",
+                                text_color="#e0e0e0",
+                                font=("Segoe UI", 11))
         te_entry.pack(fill="x")
 
         # --- Primary Bubbles ---
@@ -780,10 +780,10 @@ class FilterBar(ctk.CTkFrame):
     def _update_advanced_visibility(self):
         if self.show_advanced:
             self.advanced_frame.pack(fill="x", expand=True, pady=(5, 0))
-            self.adv_btn.configure(text="▲ Advanced", text_color="#c4b5fd", border_color="#8b5cf6")
+            self.adv_btn.configure(text="▲ Advanced", text_color="#82a9d6", border_color="#5c8bc4")
         else:
             self.advanced_frame.pack_forget()
-            self.adv_btn.configure(text="⚙️ Advanced", text_color="#94a3b8", border_color="#334155")
+            self.adv_btn.configure(text="⚙️ Advanced", text_color="#9aa0a6", border_color="#3a3a3d")
 
     def _notify_change(self, *args):
         new_settings = {}
@@ -813,10 +813,10 @@ class Dropdown(ctk.CTkToplevel):
         self.max_height = height
         
         # Style
-        self.configure(fg_color="#0f172a") # bg-slate-900
+        self.configure(fg_color="#1e1e1e") # bg-slate-900
         
         # Content Frame
-        self.content_frame = ctk.CTkFrame(self, fg_color="#0f172a", border_width=1, border_color="#334155")
+        self.content_frame = ctk.CTkFrame(self, fg_color="#1e1e1e", border_width=1, border_color="#3a3a3d")
         self.content_frame.pack(fill="both", expand=True)
         
         # Scrollable list
@@ -824,7 +824,7 @@ class Dropdown(ctk.CTkToplevel):
         self.scroll_frame.pack(fill="both", expand=True, padx=1, pady=1)
 
         # Loading/Error Overlay
-        self.status_label = ctk.CTkLabel(self.content_frame, text="", font=("Inter", 12), text_color="#94a3b8")
+        self.status_label = ctk.CTkLabel(self.content_frame, text="", font=("Segoe UI", 12), text_color="#9aa0a6")
         
         # Close on click outside (Binding to root is tricky, using focus out)
         self.bind("<FocusOut>", self._on_focus_out)
@@ -843,17 +843,17 @@ class Dropdown(ctk.CTkToplevel):
         
     def show_loading(self):
         self._clear_items()
-        self.status_label.configure(text="⟳ Loading...", text_color="#cbd5e1")
+        self.status_label.configure(text="⟳ Loading...", text_color="#c4c8cc")
         self.status_label.place(relx=0.5, rely=0.5, anchor="center")
         
     def show_error(self, message):
         self._clear_items()
-        self.status_label.configure(text=f"⚠ {message}", text_color="#ef4444")
+        self.status_label.configure(text=f"⚠ {message}", text_color="#f44336")
         self.status_label.place(relx=0.5, rely=0.5, anchor="center")
         
     def show_empty(self, message="No items found"):
         self._clear_items()
-        self.status_label.configure(text=message, text_color="#64748b")
+        self.status_label.configure(text=message, text_color="#6a6a6e")
         self.status_label.place(relx=0.5, rely=0.5, anchor="center")
 
     def set_items(self, items):
@@ -874,10 +874,10 @@ class Dropdown(ctk.CTkToplevel):
         
         # Container for hover effect
         btn = ctk.CTkButton(self.scroll_frame, text=label, anchor="w",
-                            font=("Inter", 12),
+                            font=("Segoe UI", 12),
                             fg_color="transparent", 
-                            text_color="#e2e8f0",
-                            hover_color="#4c1d95", # violet-900/50
+                            text_color="#e0e0e0",
+                            hover_color="#3f6a9e", # violet-900/50
                             height=32,
                             command=lambda: self._on_item_click(item))
         btn.pack(fill="x", pady=0)

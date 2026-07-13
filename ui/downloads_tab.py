@@ -39,12 +39,12 @@ class DownloadsTab(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
-        header = ctk.CTkFrame(self, fg_color="#0f172a", corner_radius=10)
+        header = ctk.CTkFrame(self, fg_color="#1e1e1e", corner_radius=6)
         header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
         header.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(
-            header, text="⬇  Downloads", font=("Inter", 18, "bold"), text_color="#FFFFFF"
+            header, text="⬇  Downloads", font=("Segoe UI", 18, "bold"), text_color="#FFFFFF"
         ).grid(row=0, column=0, sticky="w", padx=15, pady=10)
 
         self._search_var = ctk.StringVar()
@@ -56,31 +56,31 @@ class DownloadsTab(ctk.CTkFrame):
         self._search_entry.grid(row=0, column=1, sticky="w", padx=(10, 10), pady=10)
 
         self.count_label = ctk.CTkLabel(
-            header, text="", font=("Inter", 12), text_color="#94a3b8"
+            header, text="", font=("Segoe UI", 12), text_color="#9aa0a6"
         )
         self.count_label.grid(row=0, column=1, sticky="e", padx=(0, 10), pady=10)
 
         ctk.CTkButton(
             header, text="Add All to Library", width=140, height=28,
-            fg_color="#8b5cf6", hover_color="#7c3aed", font=("Inter", 12),
+            fg_color="#5c8bc4", hover_color="#3f6a9e", font=("Segoe UI", 12),
             command=self._add_all_to_library,
         ).grid(row=0, column=2, sticky="e", padx=(5, 5), pady=10)
 
         ctk.CTkButton(
             header, text="Forget Missing", width=120, height=28,
-            fg_color="#475569", hover_color="#64748b", font=("Inter", 12),
+            fg_color="#5a5a5f", hover_color="#6a6a6e", font=("Segoe UI", 12),
             command=self._forget_all_missing,
         ).grid(row=0, column=3, sticky="e", padx=(5, 5), pady=10)
 
         ctk.CTkButton(
             header, text="Forget Duplicates", width=130, height=28,
-            fg_color="#475569", hover_color="#64748b", font=("Inter", 12),
+            fg_color="#5a5a5f", hover_color="#6a6a6e", font=("Segoe UI", 12),
             command=self._forget_duplicates,
         ).grid(row=0, column=4, sticky="e", padx=(5, 5), pady=10)
 
         ctk.CTkButton(
             header, text="↻", width=40, height=28,
-            fg_color="#334155", hover_color="#475569", font=("Inter", 14),
+            fg_color="#3a3a3d", hover_color="#5a5a5f", font=("Segoe UI", 14),
             command=self.refresh,
         ).grid(row=0, column=5, sticky="e", padx=(5, 15), pady=10)
 
@@ -89,20 +89,20 @@ class DownloadsTab(ctk.CTkFrame):
         self.page_bar.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 0))
         self.prev_btn = ctk.CTkButton(
             self.page_bar, text="◀", width=36, height=24,
-            fg_color="#334155", hover_color="#475569",
+            fg_color="#3a3a3d", hover_color="#5a5a5f",
             command=self._prev_page, state="disabled",
         )
         self.prev_btn.pack(side="left", padx=(0, 4))
-        self.page_label = ctk.CTkLabel(self.page_bar, text="", font=("Inter", 11), text_color="#94a3b8")
+        self.page_label = ctk.CTkLabel(self.page_bar, text="", font=("Segoe UI", 11), text_color="#9aa0a6")
         self.page_label.pack(side="left", padx=4)
         self.next_btn = ctk.CTkButton(
             self.page_bar, text="▶", width=36, height=24,
-            fg_color="#334155", hover_color="#475569",
+            fg_color="#3a3a3d", hover_color="#5a5a5f",
             command=self._next_page, state="disabled",
         )
         self.next_btn.pack(side="left", padx=4)
 
-        self.list_frame = ctk.CTkScrollableFrame(self, fg_color="#0a0a0a", corner_radius=10)
+        self.list_frame = ctk.CTkScrollableFrame(self, fg_color="#1a1a1b", corner_radius=6)
         self.list_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=(5, 10))
         self.list_frame.grid_columnconfigure(0, weight=1)
         # Row 2 (the list) gets the expanding weight, not row 1 (page bar).
@@ -183,7 +183,7 @@ class DownloadsTab(ctk.CTkFrame):
     def _show_empty(self, msg):
         ctk.CTkLabel(
             self.list_frame, text=msg,
-            font=("Inter", 12), text_color="#64748b",
+            font=("Segoe UI", 12), text_color="#6a6a6e",
             wraplength=600, justify="center",
         ).grid(row=0, column=0, sticky="ew", pady=40, padx=20)
 
@@ -192,15 +192,15 @@ class DownloadsTab(ctk.CTkFrame):
         filepath = entry.get("filepath", "")
         on_disk = bool(filepath) and os.path.exists(filepath)
 
-        row = ctk.CTkFrame(parent, fg_color="#181818" if index % 2 == 0 else "#1f1f1f", corner_radius=6)
+        row = ctk.CTkFrame(parent, fg_color="#252526" if index % 2 == 0 else "#252526", corner_radius=6)
         row.grid(row=index, column=0, sticky="ew", padx=4, pady=2)
         row.grid_columnconfigure(1, weight=1)
 
         # Status dot
         ctk.CTkLabel(
             row, text="●",
-            text_color="#22c55e" if on_disk else "#ef4444",
-            font=("Inter", 14),
+            text_color="#66bb6a" if on_disk else "#f44336",
+            font=("Segoe UI", 14),
         ).grid(row=0, column=0, padx=(10, 4), pady=8)
 
         # Title + artist + path
@@ -209,13 +209,13 @@ class DownloadsTab(ctk.CTkFrame):
 
         title = entry.get("title") or os.path.basename(filepath) or uuid or "(untitled)"
         artist = entry.get("artist") or "Unknown Artist"
-        ctk.CTkLabel(info, text=title, anchor="w", font=("Inter", 13, "bold"),
+        ctk.CTkLabel(info, text=title, anchor="w", font=("Segoe UI", 13, "bold"),
                      text_color="#FFFFFF").pack(anchor="w", fill="x")
         sub = f"{artist}  •  {os.path.basename(filepath) if filepath else '(no file)'}"
         if not on_disk:
             sub += "  •  ⚠ missing on disk"
-        ctk.CTkLabel(info, text=sub, anchor="w", font=("Inter", 11),
-                     text_color="#94a3b8").pack(anchor="w", fill="x")
+        ctk.CTkLabel(info, text=sub, anchor="w", font=("Segoe UI", 11),
+                     text_color="#9aa0a6").pack(anchor="w", fill="x")
 
         # Buttons
         btns = ctk.CTkFrame(row, fg_color="transparent")
@@ -224,27 +224,27 @@ class DownloadsTab(ctk.CTkFrame):
         if on_disk and self.player_widget is not None:
             ctk.CTkButton(
                 btns, text="▶", width=32, height=28,
-                fg_color="#334155", hover_color="#475569", font=("Inter", 12),
+                fg_color="#3a3a3d", hover_color="#5a5a5f", font=("Segoe UI", 12),
                 command=lambda fp=filepath, e=entry: self._play(fp, e),
             ).pack(side="left", padx=2)
 
         if on_disk:
             ctk.CTkButton(
                 btns, text="↑ Library", width=80, height=28,
-                fg_color="#16a34a", hover_color="#15803d", font=("Inter", 11),
+                fg_color="#43a047", hover_color="#2e7d32", font=("Segoe UI", 11),
                 command=lambda u=uuid: self._add_to_library(u),
             ).pack(side="left", padx=2)
         else:
             # File missing — offer Forget so the song can be re-downloaded.
             ctk.CTkButton(
                 btns, text="Forget", width=64, height=28,
-                fg_color="#475569", hover_color="#64748b", font=("Inter", 11),
+                fg_color="#5a5a5f", hover_color="#6a6a6e", font=("Segoe UI", 11),
                 command=lambda u=uuid: self._forget(u),
             ).pack(side="left", padx=2)
 
         ctk.CTkButton(
             btns, text="🗑", width=32, height=28,
-            fg_color="#7f1d1d", hover_color="#991b1b", font=("Inter", 12),
+            fg_color="#7f1d1d", hover_color="#b71c1c", font=("Segoe UI", 12),
             command=lambda u=uuid, fp=filepath: self._trash(u, fp),
         ).pack(side="left", padx=2)
 

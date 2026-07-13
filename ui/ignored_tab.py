@@ -25,22 +25,22 @@ class IgnoredTab(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
-        header = ctk.CTkFrame(self, fg_color="#0f172a", corner_radius=10)
+        header = ctk.CTkFrame(self, fg_color="#1e1e1e", corner_radius=6)
         header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
         header.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(
-            header, text="🚫  Ignored", font=("Inter", 18, "bold"), text_color="#FFFFFF",
+            header, text="🚫  Ignored", font=("Segoe UI", 18, "bold"), text_color="#FFFFFF",
         ).grid(row=0, column=0, sticky="w", padx=15, pady=10)
 
         self.count_label = ctk.CTkLabel(
-            header, text="", font=("Inter", 12), text_color="#94a3b8",
+            header, text="", font=("Segoe UI", 12), text_color="#9aa0a6",
         )
         self.count_label.grid(row=0, column=1, sticky="w", padx=10, pady=10)
 
         ctk.CTkButton(
             header, text="↻", width=40, height=28,
-            fg_color="#334155", hover_color="#475569", font=("Inter", 14),
+            fg_color="#3a3a3d", hover_color="#5a5a5f", font=("Segoe UI", 14),
             command=self.refresh,
         ).grid(row=0, column=2, sticky="e", padx=(5, 15), pady=10)
 
@@ -48,26 +48,26 @@ class IgnoredTab(ctk.CTkFrame):
         self.page_bar.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 0))
         self.prev_btn = ctk.CTkButton(
             self.page_bar, text="◀", width=36, height=24,
-            fg_color="#334155", hover_color="#475569",
+            fg_color="#3a3a3d", hover_color="#5a5a5f",
             command=self._prev_page, state="disabled",
         )
         self.prev_btn.pack(side="left", padx=(0, 4))
-        self.page_label = ctk.CTkLabel(self.page_bar, text="", font=("Inter", 11), text_color="#94a3b8")
+        self.page_label = ctk.CTkLabel(self.page_bar, text="", font=("Segoe UI", 11), text_color="#9aa0a6")
         self.page_label.pack(side="left", padx=4)
         self.next_btn = ctk.CTkButton(
             self.page_bar, text="▶", width=36, height=24,
-            fg_color="#334155", hover_color="#475569",
+            fg_color="#3a3a3d", hover_color="#5a5a5f",
             command=self._next_page, state="disabled",
         )
         self.next_btn.pack(side="left", padx=4)
 
-        self.list_frame = ctk.CTkScrollableFrame(self, fg_color="#0a0a0a", corner_radius=10)
+        self.list_frame = ctk.CTkScrollableFrame(self, fg_color="#1a1a1b", corner_radius=6)
         self.list_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=(5, 10))
         self.list_frame.grid_columnconfigure(0, weight=1)
 
         self.help_label = ctk.CTkLabel(
             self, text="Click 🚫 on any preload row to ignore a song. Restore here to allow re-download.",
-            text_color="#64748b", font=("Inter", 11), wraplength=800, justify="left",
+            text_color="#6a6a6e", font=("Segoe UI", 11), wraplength=800, justify="left",
         )
         self.help_label.grid(row=3, column=0, sticky="ew", padx=15, pady=(0, 10))
 
@@ -128,7 +128,7 @@ class IgnoredTab(ctk.CTkFrame):
     def _empty(self, msg):
         ctk.CTkLabel(
             self.list_frame, text=msg,
-            font=("Inter", 12), text_color="#64748b",
+            font=("Segoe UI", 12), text_color="#6a6a6e",
             wraplength=600, justify="center",
         ).grid(row=0, column=0, sticky="ew", pady=40, padx=20)
 
@@ -137,7 +137,7 @@ class IgnoredTab(ctk.CTkFrame):
         title = entry.get("title") or ""
         artist = entry.get("artist") or ""
 
-        row = ctk.CTkFrame(parent, fg_color="#181818" if index % 2 == 0 else "#1f1f1f", corner_radius=6)
+        row = ctk.CTkFrame(parent, fg_color="#252526" if index % 2 == 0 else "#252526", corner_radius=6)
         row.grid(row=index, column=0, sticky="ew", padx=4, pady=2)
         row.grid_columnconfigure(0, weight=1)
 
@@ -146,7 +146,7 @@ class IgnoredTab(ctk.CTkFrame):
 
         display_title = title or uuid or "(untitled)"
         ctk.CTkLabel(
-            info, text=display_title, anchor="w", font=("Inter", 13, "bold"),
+            info, text=display_title, anchor="w", font=("Segoe UI", 13, "bold"),
             text_color="#FFFFFF",
         ).pack(anchor="w", fill="x")
 
@@ -157,12 +157,12 @@ class IgnoredTab(ctk.CTkFrame):
             sub_parts.append(uuid)
         sub_text = "  •  ".join(sub_parts) if sub_parts else "no metadata"
         ctk.CTkLabel(
-            info, text=sub_text, anchor="w", font=("Consolas", 10), text_color="#94a3b8",
+            info, text=sub_text, anchor="w", font=("Consolas", 10), text_color="#9aa0a6",
         ).pack(anchor="w", fill="x")
 
         ctk.CTkButton(
             row, text="Restore", width=80, height=28,
-            fg_color="#16a34a", hover_color="#15803d", font=("Inter", 11),
+            fg_color="#43a047", hover_color="#2e7d32", font=("Segoe UI", 11),
             command=lambda u=uuid: self._restore(u),
         ).grid(row=0, column=1, sticky="e", padx=(4, 10), pady=6)
 

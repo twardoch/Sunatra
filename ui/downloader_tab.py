@@ -84,7 +84,7 @@ class DownloaderTab(ctk.CTkFrame):
         self.debug_window = None
         
         # Theme Attributes
-        self.card_bg = "#181818"
+        self.card_bg = "#252526"
         
         # Debug Log Capture
         self._stdout_capture = StdoutCapture(self)
@@ -113,7 +113,7 @@ class DownloaderTab(ctk.CTkFrame):
         # --- 1. Compact Header (Flow Layout) ---
         # "Combine Connection, Scan Settings, and Target into a single unified header"
         
-        self.header_frame = ctk.CTkFrame(self, fg_color="#0f172a", corner_radius=12, border_width=1, border_color="#1e293b")
+        self.header_frame = ctk.CTkFrame(self, fg_color="#1e1e1e", corner_radius=6, border_width=1, border_color="#252526")
         self.header_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
         
         # We use FlowLayout inside this styled frame
@@ -122,7 +122,7 @@ class DownloaderTab(ctk.CTkFrame):
         
         # Helper for mini-sections
         def add_section_label(parent, text):
-            l = ctk.CTkLabel(parent, text=text, font=("Inter", 11, "bold"), text_color="#94a3b8")
+            l = ctk.CTkLabel(parent, text=text, font=("Segoe UI", 11, "bold"), text_color="#9aa0a6")
             l.pack(side="left", padx=(0, 8))
             
         def create_group_frame():
@@ -135,18 +135,18 @@ class DownloaderTab(ctk.CTkFrame):
         
         self.token_var = ctk.StringVar()
         self.token_entry = ctk.CTkEntry(conn_group, textvariable=self.token_var, show="●", width=120, height=24,
-                                         fg_color="#1e293b", border_color="#334155",
-                                         text_color="#FFFFFF", font=("Inter", 11))
+                                         fg_color="#252526", border_color="#3a3a3d",
+                                         text_color="#FFFFFF", font=("Segoe UI", 11))
         self.token_entry.pack(side="left", padx=(0, 5))
         
         ctk.CTkButton(conn_group, text="Get", command=self.get_token_logic, width=40, height=24, 
-                      fg_color="#334155", hover_color="#475569", font=("Inter", 11),
+                      fg_color="#3a3a3d", hover_color="#5a5a5f", font=("Segoe UI", 11),
                       corner_radius=6).pack(side="left")
                       
         self.header_flow.add_widget(conn_group, padx=8, pady=4)
         
         # Separator
-        sep1 = ctk.CTkFrame(self.header_flow, width=1, height=20, fg_color="#334155")
+        sep1 = ctk.CTkFrame(self.header_flow, width=1, height=20, fg_color="#3a3a3d")
         self.header_flow.add_widget(sep1, padx=4, pady=4)
 
         # --- Group 2: Settings ---
@@ -162,9 +162,9 @@ class DownloaderTab(ctk.CTkFrame):
         self.max_pages_var.trace_add("write", lambda *args: self.save_config())
 
         def add_mini_input(label, var, width=40, tooltip=""):
-            ctk.CTkLabel(settings_group, text=label, font=("Inter", 11), text_color="#cbd5e1").pack(side="left", padx=(5, 2))
+            ctk.CTkLabel(settings_group, text=label, font=("Segoe UI", 11), text_color="#c4c8cc").pack(side="left", padx=(5, 2))
             e = ctk.CTkEntry(settings_group, textvariable=var, width=width, height=24,
-                             fg_color="#1e293b", border_color="#334155", text_color="#FFFFFF", font=("Inter", 11))
+                             fg_color="#252526", border_color="#3a3a3d", text_color="#FFFFFF", font=("Segoe UI", 11))
             e.pack(side="left")
             if tooltip: ToolTip(e, tooltip)
 
@@ -175,27 +175,27 @@ class DownloaderTab(ctk.CTkFrame):
         self.header_flow.add_widget(settings_group, padx=8, pady=4)
 
         # Separator
-        sep2 = ctk.CTkFrame(self.header_flow, width=1, height=20, fg_color="#334155")
+        sep2 = ctk.CTkFrame(self.header_flow, width=1, height=20, fg_color="#3a3a3d")
         self.header_flow.add_widget(sep2, padx=4, pady=4)
 
         # --- Group 3: Target ---
         target_group = create_group_frame()
         
         self.workspace_btn = ctk.CTkButton(target_group, text="Workspaces", command=self.open_workspaces, height=24, width=90,
-                                           corner_radius=12, fg_color="#334155", hover_color="#475569",
-                                           text_color="#e2e8f0", font=("Inter", 11))
+                                           corner_radius=6, fg_color="#3a3a3d", hover_color="#5a5a5f",
+                                           text_color="#e0e0e0", font=("Segoe UI", 11))
         self.workspace_btn.pack(side="left", padx=(0, 5))
 
         self.playlist_btn = ctk.CTkButton(target_group, text="Playlists", command=self.open_playlists, height=24, width=80,
-                                          corner_radius=12, fg_color="#334155", hover_color="#475569",
-                                          text_color="#e2e8f0", font=("Inter", 11))
+                                          corner_radius=6, fg_color="#3a3a3d", hover_color="#5a5a5f",
+                                          text_color="#e0e0e0", font=("Segoe UI", 11))
         self.playlist_btn.pack(side="left")
 
         self.header_flow.add_widget(target_group, padx=8, pady=4)
         
         # --- 2. Filter Bar (Row 1) ---
         # Keep existing container but reduce padding slightly
-        self.filter_container = ctk.CTkFrame(self, fg_color="#0f172a", corner_radius=12, border_width=1, border_color="#1e293b") 
+        self.filter_container = ctk.CTkFrame(self, fg_color="#1e1e1e", corner_radius=6, border_width=1, border_color="#252526") 
         self.filter_container.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
         
         self.filter_bar = FilterBar(self.filter_container, self.filter_settings, self.on_filters_applied)
@@ -213,25 +213,25 @@ class DownloaderTab(ctk.CTkFrame):
         btn_flow.pack(fill="x")
         
         self.preload_btn = ctk.CTkButton(btn_flow, text="Preload List", command=self.preload_songs, 
-                                         height=32, width=100, fg_color="transparent", border_width=1, border_color="#555", 
-                                         text_color="#B3B3B3", hover_color="#333333", font=("Inter", 12, "bold"),
+                                         height=32, width=100, fg_color="transparent", border_width=1, border_color="#5a5a5f", 
+                                         text_color="#9aa0a6", hover_color="#3a3a3d", font=("Segoe UI", 12, "bold"),
                                          corner_radius=8)
         # We need to add them to flow, but FlowLayout expects widgets to be children of it usually for packing
         # Actually my FlowLayout implementation doesn't strictly enforce parenting if we pass widget, 
         # but place() works relative to parent. So YES, they must be children of btn_flow.
         # Re-parenting buttons to btn_flow
         self.preload_btn = ctk.CTkButton(btn_flow, text="Preload List", command=self.preload_songs, 
-                                          height=32, width=100, fg_color="transparent", border_width=1, border_color="#555", 
-                                          text_color="#B3B3B3", hover_color="#333333", font=("Inter", 12, "bold"),
+                                          height=32, width=100, fg_color="transparent", border_width=1, border_color="#5a5a5f", 
+                                          text_color="#9aa0a6", hover_color="#3a3a3d", font=("Segoe UI", 12, "bold"),
                                           corner_radius=8)
         
         self.start_btn = ctk.CTkButton(btn_flow, text="Start Download", command=self.start_download_thread,
-                                       height=32, width=130, fg_color="#8B5CF6", hover_color="#7C3AED",
-                                       font=("Inter", 12, "bold"), corner_radius=8)
+                                       height=32, width=130, fg_color="#5c8bc4", hover_color="#3f6a9e",
+                                       font=("Segoe UI", 12, "bold"), corner_radius=8)
                                        
         self.stop_btn = ctk.CTkButton(btn_flow, text="Stop", command=self.stop_download,
-                                      height=32, width=70, fg_color="#ef4444", hover_color="#b91c1c",
-                                      font=("Inter", 12, "bold"), corner_radius=8)
+                                      height=32, width=70, fg_color="#f44336", hover_color="#c62828",
+                                      font=("Segoe UI", 12, "bold"), corner_radius=8)
         self.stop_btn.configure(state="disabled")
 
         btn_flow.add_widget(self.preload_btn, padx=0, pady=0)
@@ -239,7 +239,7 @@ class DownloaderTab(ctk.CTkFrame):
         btn_flow.add_widget(self.stop_btn, padx=5, pady=0)
 
         # --- 4. Song List (Row 3) ---
-        self.queue_list_frame = ctk.CTkScrollableFrame(self, fg_color="#181818") 
+        self.queue_list_frame = ctk.CTkScrollableFrame(self, fg_color="#252526") 
         self.queue_list_frame.grid(row=3, column=0, sticky="nsew", padx=10, pady=5)
         
         # Empty State
@@ -250,10 +250,10 @@ class DownloaderTab(ctk.CTkFrame):
         footer = ctk.CTkFrame(self, fg_color="transparent")
         footer.grid(row=4, column=0, sticky="ew", padx=10, pady=(0, 10))
         
-        self.status_label = ctk.CTkLabel(footer, text="Ready", text_color="#10b981", font=("Inter", 11))
+        self.status_label = ctk.CTkLabel(footer, text="Ready", text_color="#66bb6a", font=("Segoe UI", 11))
         self.status_label.pack(side="left")
         
-        self.progress_bar = ctk.CTkProgressBar(footer, height=6, progress_color="#8B5CF6")
+        self.progress_bar = ctk.CTkProgressBar(footer, height=6, progress_color="#5c8bc4")
         self.progress_bar.pack(side="right", fill="x", expand=True, padx=(10, 0))
         self.progress_bar.set(0)
 
@@ -320,7 +320,7 @@ class DownloaderTab(ctk.CTkFrame):
             ts = time.strftime("%H:%M:%S")
             self.extension_status.configure(
                 text=f"🔗 Auto-refreshed ({ts})",
-                text_color="#10b981"
+                text_color="#66bb6a"
             )
         self.save_config()
         
@@ -499,7 +499,7 @@ class DownloaderTab(ctk.CTkFrame):
             return
 
         # Build the panel and pack it at the very top of the queue.
-        panel = ctk.CTkFrame(self.queue_list_frame, fg_color="#0f172a", corner_radius=8)
+        panel = ctk.CTkFrame(self.queue_list_frame, fg_color="#1e1e1e", corner_radius=8)
         # Pack before the first existing child so it lands above the cards.
         first_child = next(iter(self.queue_list_frame.winfo_children()), None)
         if first_child is not None:
@@ -510,21 +510,21 @@ class DownloaderTab(ctk.CTkFrame):
 
         header = ctk.CTkLabel(
             panel, text=f"Preload found {total} songs in this scope",
-            font=("Inter", 13, "bold"), text_color="#e2e8f0",
+            font=("Segoe UI", 13, "bold"), text_color="#e0e0e0",
         )
         header.pack(anchor="w", padx=12, pady=(8, 2))
 
         breakdown = ctk.CTkFrame(panel, fg_color="transparent")
         breakdown.pack(fill="x", padx=12, pady=(0, 6))
         for color, label, count in [
-            ("#22c55e", "new", new_n),
-            ("#94a3b8", "already on disk", on_disk_n),
-            ("#fbbf24", "missing on disk", missing_n),
+            ("#66bb6a", "new", new_n),
+            ("#9aa0a6", "already on disk", on_disk_n),
+            ("#ffa726", "missing on disk", missing_n),
             ("#7f1d1d", "trashed", trashed_n),
         ]:
             chip = ctk.CTkLabel(
                 breakdown, text=f"{count} {label}",
-                font=("Inter", 11), text_color=color,
+                font=("Segoe UI", 11), text_color=color,
             )
             chip.pack(side="left", padx=(0, 12))
 
@@ -534,8 +534,8 @@ class DownloaderTab(ctk.CTkFrame):
             actions.pack(fill="x", padx=12, pady=(0, 8))
             ctk.CTkButton(
                 actions, text=f"Queue {missing_n} missing for re-download",
-                fg_color="#fbbf24", hover_color="#f59e0b", text_color="#1f2937",
-                font=("Inter", 11, "bold"),
+                fg_color="#ffa726", hover_color="#ffa726", text_color="#252526",
+                font=("Segoe UI", 11, "bold"),
                 command=self._requeue_missing_on_disk,
             ).pack(side="left")
 
@@ -731,7 +731,7 @@ class DownloaderTab(ctk.CTkFrame):
             pass
 
     def update_status(self, text, state="normal"):
-        colors = {"normal": "#10b981", "busy": "#8b5cf6", "error": "#ef4444"}
+        colors = {"normal": "#66bb6a", "busy": "#5c8bc4", "error": "#f44336"}
         self.gui_queue.put(("status", text, colors.get(state, "gray")))
 
     def log(self, text, level="info"):
@@ -846,7 +846,7 @@ class DownloaderTab(ctk.CTkFrame):
         uuid = metadata.get("id")
         ignore_cb = self._ignore_song if (self.is_preloaded and self.manifest is not None) else None
         card = SongCard(self.queue_list_frame, uuid, metadata.get("title", "Unknown"),
-                        metadata=metadata, bg_color="#181818", on_ignore=ignore_cb)
+                        metadata=metadata, bg_color="#252526", on_ignore=ignore_cb)
         card.pack(fill="x", pady=2, padx=5)
         self.queue_items[uuid] = card
         if self.is_preloaded:
@@ -866,7 +866,7 @@ class DownloaderTab(ctk.CTkFrame):
         if self._preload_banner is None or not self._preload_banner.winfo_exists():
             self._preload_banner = ctk.CTkLabel(
                 self.queue_list_frame, text=text,
-                font=("Inter", 11, "bold"), text_color="#fbbf24",
+                font=("Segoe UI", 11, "bold"), text_color="#ffa726",
                 wraplength=800, justify="left",
             )
             # Force the banner to the top via packing order
@@ -878,7 +878,7 @@ class DownloaderTab(ctk.CTkFrame):
             self._preload_more_btn = ctk.CTkButton(
                 self.queue_list_frame,
                 text=f"Show {min(PRELOAD_RENDER_CAP, len(self._preload_pending))} More",
-                fg_color="#8b5cf6", hover_color="#7c3aed", height=28,
+                fg_color="#5c8bc4", hover_color="#3f6a9e", height=28,
                 command=self._show_more_preloaded,
             )
             self._preload_more_btn.pack(fill="x", pady=(2, 4), padx=8)

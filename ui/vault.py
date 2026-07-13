@@ -71,7 +71,7 @@ class VaultTab(ctk.CTkFrame):
         self.grid_rowconfigure(0, weight=1)
         
         # --- Left Sidebar ---
-        self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color="#181818")
+        self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color="#252526")
         self.sidebar.grid(row=0, column=0, sticky="ns")
         self.sidebar.grid_propagate(False)
         
@@ -80,15 +80,15 @@ class VaultTab(ctk.CTkFrame):
         self.search_var.trace_add("write", self.refresh_list)
         self.search = ctk.CTkEntry(self.sidebar, placeholder_text="Search prompts...",
                                    textvariable=self.search_var,
-                                   font=("Inter", 12), fg_color="#272727",
-                                   border_color="#333333", text_color="#FFFFFF",
-                                   placeholder_text_color="#B3B3B3")
+                                   font=("Segoe UI", 12), fg_color="#2d2d30",
+                                   border_color="#3a3a3d", text_color="#FFFFFF",
+                                   placeholder_text_color="#9aa0a6")
         self.search.pack(fill="x", padx=10, pady=10)
         
         # Add Button
         ctk.CTkButton(self.sidebar, text="+ New Prompt", command=self.new_prompt,
-                      fg_color="#8B5CF6", hover_color="#7C3AED",
-                      font=("Inter", 13, "bold"), corner_radius=8).pack(fill="x", padx=10, pady=(0, 10))
+                      fg_color="#5c8bc4", hover_color="#3f6a9e",
+                      font=("Segoe UI", 13, "bold"), corner_radius=8).pack(fill="x", padx=10, pady=(0, 10))
         
         # List Area
         self.scroll_list = ctk.CTkScrollableFrame(self.sidebar, fg_color="transparent")
@@ -100,26 +100,26 @@ class VaultTab(ctk.CTkFrame):
         
         # Title Input
         ctk.CTkLabel(self.content, text="Title", anchor="w",
-                     font=("Inter", 12, "bold"), text_color="#B3B3B3").pack(anchor="w")
+                     font=("Segoe UI", 12, "bold"), text_color="#9aa0a6").pack(anchor="w")
         self.title_entry = ctk.CTkEntry(self.content, placeholder_text="My Awesome Prompt",
-                                        font=("Inter", 12), fg_color="#272727",
-                                        border_color="#333333", text_color="#FFFFFF")
+                                        font=("Segoe UI", 12), fg_color="#2d2d30",
+                                        border_color="#3a3a3d", text_color="#FFFFFF")
         self.title_entry.pack(fill="x", pady=(5, 15))
         
         # Tags Input
         ctk.CTkLabel(self.content, text="Tags (comma separated)", anchor="w",
-                     font=("Inter", 12, "bold"), text_color="#B3B3B3").pack(anchor="w")
+                     font=("Segoe UI", 12, "bold"), text_color="#9aa0a6").pack(anchor="w")
         self.tags_entry = ctk.CTkEntry(self.content, placeholder_text="Dark, Techno, Fast",
-                                       font=("Inter", 12), fg_color="#272727",
-                                       border_color="#333333", text_color="#FFFFFF")
+                                       font=("Segoe UI", 12), fg_color="#2d2d30",
+                                       border_color="#3a3a3d", text_color="#FFFFFF")
         self.tags_entry.pack(fill="x", pady=(5, 15))
         
         # Prompt Text
         ctk.CTkLabel(self.content, text="Prompt", anchor="w",
-                     font=("Inter", 12, "bold"), text_color="#B3B3B3").pack(anchor="w")
-        self.prompt_text = ctk.CTkTextbox(self.content, font=("Inter", 12),
-                                          fg_color="#272727", text_color="#FFFFFF",
-                                          border_color="#333333")
+                     font=("Segoe UI", 12, "bold"), text_color="#9aa0a6").pack(anchor="w")
+        self.prompt_text = ctk.CTkTextbox(self.content, font=("Segoe UI", 12),
+                                          fg_color="#2d2d30", text_color="#FFFFFF",
+                                          border_color="#3a3a3d")
         self.prompt_text.pack(fill="both", expand=True, pady=(5, 15))
         
         # Action Buttons
@@ -127,24 +127,24 @@ class VaultTab(ctk.CTkFrame):
         self.btn_frame.pack(fill="x")
         
         self.save_btn = ctk.CTkButton(self.btn_frame, text="Save", command=self.save_prompt,
-                                      width=100, fg_color="#8B5CF6", hover_color="#7C3AED",
-                                      font=("Inter", 13), corner_radius=8)
+                                      width=100, fg_color="#5c8bc4", hover_color="#3f6a9e",
+                                      font=("Segoe UI", 13), corner_radius=8)
         self.save_btn.pack(side="right", padx=5)
         
         self.copy_btn = ctk.CTkButton(self.btn_frame, text="Copy to Clipboard",
                                       command=self.copy_to_clipboard,
-                                      fg_color="#22c55e", hover_color="#16a34a",
-                                      font=("Inter", 13), corner_radius=8)
+                                      fg_color="#66bb6a", hover_color="#43a047",
+                                      font=("Segoe UI", 13), corner_radius=8)
         self.copy_btn.pack(side="right", padx=5)
         
         self.del_btn = ctk.CTkButton(self.btn_frame, text="Delete",
                                      command=self.delete_current,
-                                     fg_color="#ef4444", hover_color="#dc2626",
-                                     width=100, font=("Inter", 13), corner_radius=8)
+                                     fg_color="#f44336", hover_color="#d32f2f",
+                                     width=100, font=("Segoe UI", 13), corner_radius=8)
         self.del_btn.pack(side="left", padx=5)
         
         self.status_lbl = ctk.CTkLabel(self.btn_frame, text="",
-                                       text_color="#22c55e", font=("Inter", 12))
+                                       text_color="#66bb6a", font=("Segoe UI", 12))
         self.status_lbl.pack(side="right", padx=10)
         
         self.prompt_buttons = {} # uid -> properties
@@ -171,8 +171,8 @@ class VaultTab(ctk.CTkFrame):
                 continue
                 
             btn = ctk.CTkButton(self.scroll_list, text=title, anchor="w", 
-                                fg_color="transparent", text_color="#B3B3B3",
-                                hover_color="#252525", font=("Inter", 12),
+                                fg_color="transparent", text_color="#9aa0a6",
+                                hover_color="#2d2d30", font=("Segoe UI", 12),
                                 command=lambda u=uid: self.load_prompt(u))
             btn.pack(fill="x", pady=2)
             self.prompt_buttons[uid] = btn
@@ -200,8 +200,8 @@ class VaultTab(ctk.CTkFrame):
         
         # reliable highlight
         for u, btn in self.prompt_buttons.items():
-            btn.configure(fg_color="#252525" if u == uid else "transparent",
-                          text_color="#FFFFFF" if u == uid else "#B3B3B3")
+            btn.configure(fg_color="#2d2d30" if u == uid else "transparent",
+                          text_color="#FFFFFF" if u == uid else "#9aa0a6")
 
     def new_prompt(self):
         self.selected_uid = None

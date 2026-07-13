@@ -31,7 +31,7 @@ class MetadataEditorDialog(ctk.CTkToplevel):
     
     def _create_widgets(self):
         # Header
-        header = ctk.CTkLabel(self, text="Edit Song Metadata", font=("Inter", 18, "bold"))
+        header = ctk.CTkLabel(self, text="Edit Song Metadata", font=("Segoe UI", 18, "bold"))
         header.pack(pady=(20, 10))
         
         # Scrollable content
@@ -52,13 +52,13 @@ class MetadataEditorDialog(ctk.CTkToplevel):
         
         for field_key, field_label in editable_fields:
             # Label
-            label = ctk.CTkLabel(scroll_frame, text=field_label, anchor="w", font=("Inter", 12, "bold"))
+            label = ctk.CTkLabel(scroll_frame, text=field_label, anchor="w", font=("Segoe UI", 12, "bold"))
             label.pack(anchor="w", pady=(10, 2))
             
             # Entry or Textbox
             if field_key == "lyrics" or field_key == "prompt":
                 # Multiline textbox
-                entry = ctk.CTkTextbox(scroll_frame, height=100, font=("Inter", 11))
+                entry = ctk.CTkTextbox(scroll_frame, height=100, font=("Segoe UI", 11))
                 entry.pack(fill="x", pady=(0, 5))
                 
                 # Insert current value
@@ -67,7 +67,7 @@ class MetadataEditorDialog(ctk.CTkToplevel):
                     entry.insert("1.0", current_value)
             else:
                 # Single line entry
-                entry = ctk.CTkEntry(scroll_frame, font=("Inter", 11))
+                entry = ctk.CTkEntry(scroll_frame, font=("Segoe UI", 11))
                 entry.pack(fill="x", pady=(0, 5))
                 
                 # Insert current value
@@ -78,14 +78,14 @@ class MetadataEditorDialog(ctk.CTkToplevel):
             self.entries[field_key] = entry
         
         # Read-only info
-        info_frame = ctk.CTkFrame(scroll_frame, fg_color="#27272a")
+        info_frame = ctk.CTkFrame(scroll_frame, fg_color="#2d2d30")
         info_frame.pack(fill="x", pady=10)
         
         filepath = self.song_data.get("filepath", "Unknown")
         filename = os.path.basename(filepath) if filepath else "Unknown"
         
         info_label = ctk.CTkLabel(info_frame, text=f"File: {filename}", 
-                                  font=("Inter", 10), text_color="#a1a1aa", anchor="w")
+                                  font=("Segoe UI", 10), text_color="#9aa0a6", anchor="w")
         info_label.pack(padx=10, pady=5, anchor="w")
         
         # Buttons
@@ -97,7 +97,7 @@ class MetadataEditorDialog(ctk.CTkToplevel):
         cancel_btn.pack(side="left", padx=5)
         
         save_btn = ctk.CTkButton(button_frame, text="Save Changes", command=self.save_changes,
-                                 fg_color="#7c3aed", hover_color="#6d28d9", width=150)
+                                 fg_color="#3f6a9e", hover_color="#3f6a9e", width=150)
         save_btn.pack(side="right", padx=5)
     
     def save_changes(self):

@@ -5,10 +5,10 @@ import time
 class StatCard(ctk.CTkFrame):
     """A card displaying a single statistic — rounded dark card."""
     def __init__(self, parent, title, sorted_string, icon, **kwargs):
-        super().__init__(parent, fg_color="#181818", corner_radius=12, **kwargs)
+        super().__init__(parent, fg_color="#252526", corner_radius=6, **kwargs)
         
         # Icon
-        self.icon_lbl = ctk.CTkLabel(self, text=icon, font=("Inter", 32))
+        self.icon_lbl = ctk.CTkLabel(self, text=icon, font=("Segoe UI", 32))
         self.icon_lbl.pack(side="left", padx=(20, 10))
         
         # Text Frame
@@ -16,13 +16,13 @@ class StatCard(ctk.CTkFrame):
         self.text_frame.pack(side="left", pady=15)
         
         self.value_lbl = ctk.CTkLabel(self.text_frame, text=sorted_string,
-                                      font=("Inter", 24, "bold"),
+                                      font=("Segoe UI", 24, "bold"),
                                       text_color="#FFFFFF", anchor="w")
         self.value_lbl.pack(anchor="w")
         
         self.title_lbl = ctk.CTkLabel(self.text_frame, text=title,
-                                      font=("Inter", 12),
-                                      text_color="#B3B3B3", anchor="w")
+                                      font=("Segoe UI", 12),
+                                      text_color="#9aa0a6", anchor="w")
         self.title_lbl.pack(anchor="w")
 
     def update_value(self, value):
@@ -41,7 +41,7 @@ class DashboardTab(ctk.CTkFrame):
         
         # 1. Header
         self.header = ctk.CTkLabel(self, text="Producer Dashboard",
-                                   font=("Inter", 28, "bold"),
+                                   font=("Segoe UI", 28, "bold"),
                                    text_color="#FFFFFF")
         self.header.pack(pady=(20, 10), padx=30, anchor="w")
         
@@ -68,12 +68,12 @@ class DashboardTab(ctk.CTkFrame):
         
         # 3. Recent Activity Header
         self.recent_lbl = ctk.CTkLabel(self, text="Recently Downloaded",
-                                       font=("Inter", 20, "bold"),
+                                       font=("Segoe UI", 20, "bold"),
                                        text_color="#FFFFFF")
         self.recent_lbl.pack(pady=(30, 10), padx=30, anchor="w")
         
         # 4. Recent List
-        self.recent_frame = ctk.CTkFrame(self, fg_color="#181818", corner_radius=12)
+        self.recent_frame = ctk.CTkFrame(self, fg_color="#252526", corner_radius=6)
         self.recent_frame.pack(fill="both", expand=True, padx=30, pady=(0, 30))
         
         # Initial stats
@@ -134,19 +134,19 @@ class DashboardTab(ctk.CTkFrame):
                 
                 title = song.get('title', 'Unknown')
                 if len(title) > 40: title = title[:37] + "..."
-                ctk.CTkLabel(row, text=title, font=("Inter", 14, "bold"),
+                ctk.CTkLabel(row, text=title, font=("Segoe UI", 14, "bold"),
                              text_color="#FFFFFF", width=300, anchor="w").pack(side="left")
                 
                 artist = song.get('artist', 'Unknown')
                 if len(artist) > 20: artist = artist[:17] + "..."
                 ctk.CTkLabel(row, text=artist, width=150, anchor="w",
-                             text_color="#B3B3B3", font=("Inter", 12)).pack(side="left")
+                             text_color="#9aa0a6", font=("Segoe UI", 12)).pack(side="left")
                 
                 date = song.get('date', '--')
                 ctk.CTkLabel(row, text=date, width=100, anchor="e",
-                             text_color="#B3B3B3", font=("Inter", 12)).pack(side="right")
+                             text_color="#9aa0a6", font=("Segoe UI", 12)).pack(side="right")
                 
                 if i < len(recents) - 1:
-                    ctk.CTkFrame(self.recent_frame, height=1, fg_color="#333333").pack(fill="x", padx=10)
+                    ctk.CTkFrame(self.recent_frame, height=1, fg_color="#3a3a3d").pack(fill="x", padx=10)
         except Exception as e:
             print(f"Error updating recent list: {e}")

@@ -62,46 +62,46 @@ class LibraryTab(ctk.CTkFrame):
         self.search_var.trace_add("write", self.on_search)
         self.search_entry = ctk.CTkEntry(self.toolbar, textvariable=self.search_var,
                                          placeholder_text="Search Title, Artist, Genre...",
-                                         width=250, font=("Inter", 12),
-                                         fg_color="#272727", border_color="#333333",
+                                         width=250, font=("Segoe UI", 12),
+                                         fg_color="#2d2d30", border_color="#3a3a3d",
                                          text_color="#FFFFFF",
-                                         placeholder_text_color="#B3B3B3")
+                                         placeholder_text_color="#9aa0a6")
         self.search_entry.pack(side="left", padx=(0, 10))
 
         # Pill / Chip Filter Buttons
         self.filter_btns = {}
-        filters = [("👍 Liked", "keep", "#22c55e"), ("⭐ Starred", "star", "#eab308"), ("🗑️ Trash", "trash", "#ef4444")]
+        filters = [("👍 Liked", "keep", "#66bb6a"), ("⭐ Starred", "star", "#ffa726"), ("🗑️ Trash", "trash", "#f44336")]
 
         for label, tag, color in filters:
             btn = ctk.CTkButton(self.toolbar, text=label, width=80, height=28,
                                 corner_radius=14,
-                                fg_color="#333333", border_width=0,
-                                text_color="#B3B3B3", hover_color="#444444",
-                                font=("Inter", 11),
+                                fg_color="#3a3a3d", border_width=0,
+                                text_color="#9aa0a6", hover_color="#3a3a3d",
+                                font=("Segoe UI", 11),
                                 command=lambda t=tag, c=color: self.toggle_filter(t, c))
             btn.pack(side="left", padx=3)
             self.filter_btns[tag] = (btn, color)
 
         # Refresh
         self.refresh_btn = ctk.CTkButton(self.toolbar, text="🔄", width=36, height=28,
-                                         corner_radius=14, fg_color="#333333",
-                                         hover_color="#444444",
+                                         corner_radius=14, fg_color="#3a3a3d",
+                                         hover_color="#3a3a3d",
                                          command=self.refresh_library)
         self.refresh_btn.pack(side="right", padx=5)
 
         # Change Folder
         ctk.CTkButton(self.toolbar, text="📂", width=36, height=28,
-                      corner_radius=14, fg_color="#333333",
-                      hover_color="#444444",
+                      corner_radius=14, fg_color="#3a3a3d",
+                      hover_color="#3a3a3d",
                       command=self.change_download_folder).pack(side="right", padx=5)
 
         # Forget Missing — drops manifest entries whose files are gone, so
         # those songs become re-downloadable. Distinct from Trash (permanent
         # block).
         ctk.CTkButton(self.toolbar, text="Forget Missing", width=120, height=28,
-                      corner_radius=14, fg_color="#475569",
-                      hover_color="#64748b", text_color="#FFFFFF",
-                      font=("Inter", 11),
+                      corner_radius=14, fg_color="#5a5a5f",
+                      hover_color="#6a6a6e", text_color="#FFFFFF",
+                      font=("Segoe UI", 11),
                       command=self.forget_missing).pack(side="right", padx=5)
 
         # Rebuild — scans library_path for SUNO_UUID-tagged files and adds
@@ -109,9 +109,9 @@ class LibraryTab(ctk.CTkFrame):
         # subfolder). Use after manual file moves or after deleting the
         # manifest.
         ctk.CTkButton(self.toolbar, text="Rebuild from Disk", width=130, height=28,
-                      corner_radius=14, fg_color="#475569",
-                      hover_color="#64748b", text_color="#FFFFFF",
-                      font=("Inter", 11),
+                      corner_radius=14, fg_color="#5a5a5f",
+                      hover_color="#6a6a6e", text_color="#FFFFFF",
+                      font=("Segoe UI", 11),
                       command=self.rebuild_from_disk).pack(side="right", padx=5)
 
         # Pagination Controls
@@ -119,22 +119,22 @@ class LibraryTab(ctk.CTkFrame):
         self.page_frame.pack(side="right", padx=10)
 
         self.prev_btn = ctk.CTkButton(self.page_frame, text="<", width=28, height=28,
-                                      corner_radius=14, fg_color="#333333",
+                                      corner_radius=14, fg_color="#3a3a3d",
                                       command=self.prev_page, state="disabled")
         self.prev_btn.pack(side="left", padx=2)
 
         self.page_label = ctk.CTkLabel(self.page_frame, text="0 / 0", width=50,
-                                       font=("Inter", 11), text_color="#B3B3B3")
+                                       font=("Segoe UI", 11), text_color="#9aa0a6")
         self.page_label.pack(side="left", padx=5)
 
         self.next_btn = ctk.CTkButton(self.page_frame, text=">", width=28, height=28,
-                                      corner_radius=14, fg_color="#333333",
+                                      corner_radius=14, fg_color="#3a3a3d",
                                       command=self.next_page, state="disabled")
         self.next_btn.pack(side="left", padx=2)
 
         # Stat Label
         self.count_label = ctk.CTkLabel(self.toolbar, text="0 songs", width=80,
-                                        font=("Inter", 11), text_color="#B3B3B3")
+                                        font=("Segoe UI", 11), text_color="#9aa0a6")
         self.count_label.pack(side="right", padx=5)
 
         # --- Data Grid Header (no visible borders, subtle bottom line) ---
@@ -151,23 +151,23 @@ class LibraryTab(ctk.CTkFrame):
         headers = ["Title", "Artist", "Genre", "BPM", "Duration"]
         for idx, text in enumerate(headers):
             lbl = ctk.CTkLabel(self.header_frame, text=text,
-                               font=("Inter", 11, "bold"), text_color="#B3B3B3")
+                               font=("Segoe UI", 11, "bold"), text_color="#9aa0a6")
             anchor = "w" if idx < 3 else "center" if idx == 3 else "e"
             padx = (10, 5) if idx == 0 else (5, 10) if idx == 4 else 5
             lbl.configure(anchor=anchor)
             lbl.grid(row=0, column=idx, sticky="ew", padx=padx, pady=5)
 
         # Subtle separator line under header
-        ctk.CTkFrame(self, height=1, fg_color="#333333").pack(fill="x", padx=10)
+        ctk.CTkFrame(self, height=1, fg_color="#3a3a3d").pack(fill="x", padx=10)
 
         # Song List Area
-        self.scroll_frame = ctk.CTkScrollableFrame(self, fg_color="#181818")
+        self.scroll_frame = ctk.CTkScrollableFrame(self, fg_color="#252526")
         self.scroll_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
         # Empty State
         self.empty_state = ctk.CTkLabel(self.scroll_frame,
                                         text="No songs found.\nCheck your folder or download some!",
-                                        font=("Inter", 14), text_color="#B3B3B3")
+                                        font=("Segoe UI", 14), text_color="#9aa0a6")
 
     def _load_tags(self):
         if self.tags_file and os.path.exists(self.tags_file):

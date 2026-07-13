@@ -214,7 +214,7 @@ class SunoSyncApp(ctk.CTk):
         self.after(0, lambda: self._create_update_bar(version, url))
 
     def _create_update_bar(self, version, url):
-        self.update_bar = ctk.CTkFrame(self, fg_color="#22c55e", height=30, corner_radius=0)
+        self.update_bar = ctk.CTkFrame(self, fg_color="#66bb6a", height=30, corner_radius=0)
         
         # Unmap existing to shift them down
         self.sidebar.grid_forget()
@@ -230,10 +230,10 @@ class SunoSyncApp(ctk.CTk):
         
         # Close Button (Rightmost)
         close_btn = ctk.CTkButton(self.update_bar, text="✕", width=30, height=20, fg_color="transparent", 
-                                  text_color="white", hover_color="#16a34a", command=self._close_update_bar)
+                                  text_color="white", hover_color="#43a047", command=self._close_update_bar)
         close_btn.pack(side="right", padx=(5, 20), pady=2)
 
-        btn = ctk.CTkButton(self.update_bar, text="Download", width=80, height=20, fg_color="white", text_color="#22c55e", 
+        btn = ctk.CTkButton(self.update_bar, text="Download", width=80, height=20, fg_color="white", text_color="#66bb6a", 
                             hover_color="#f0fdf4", command=lambda: webbrowser.open(url))
         btn.pack(side="right", padx=5, pady=2)
         

@@ -13,7 +13,7 @@ class SettingsTab(ctk.CTkFrame):
         super().__init__(parent, fg_color="transparent", **kwargs)
         self.config_manager = config_manager
         self.manifest = manifest
-        self.card_bg = "#27272a"
+        self.card_bg = "#2d2d30"
 
         # UI Setup
         self._setup_layout()
@@ -21,7 +21,7 @@ class SettingsTab(ctk.CTkFrame):
 
     def _setup_layout(self):
         # Title
-        title = ctk.CTkLabel(self, text="Settings", font=("Inter", 24, "bold"))
+        title = ctk.CTkLabel(self, text="Settings", font=("Segoe UI", 24, "bold"))
         title.pack(anchor="w", padx=20, pady=(20, 10))
         
         # Scrollable container
@@ -60,7 +60,7 @@ class SettingsTab(ctk.CTkFrame):
         def add_scan_row(row, label, var, hint):
             ctk.CTkLabel(scan_inner, text=label, width=120, anchor="w").grid(row=row, column=0, pady=5, sticky="w")
             ctk.CTkEntry(scan_inner, textvariable=var, width=80).grid(row=row, column=1, pady=5, sticky="w", padx=10)
-            ctk.CTkLabel(scan_inner, text=hint, text_color="gray", font=("Inter", 11)).grid(row=row, column=2, pady=5, sticky="w")
+            ctk.CTkLabel(scan_inner, text=hint, text_color="gray", font=("Segoe UI", 11)).grid(row=row, column=2, pady=5, sticky="w")
             
         add_scan_row(0, "Speed (Delay):", self.scan_speed_var, "Seconds between API requests (0.5s default)")
         add_scan_row(1, "Start Page:", self.scan_start_var, "Library page to start scanning from")
@@ -79,30 +79,30 @@ class SettingsTab(ctk.CTkFrame):
         
         ctk.CTkCheckBox(rescan_frame, text="Force Rescan", variable=self.force_rescan_var).pack(anchor="w")
         ctk.CTkLabel(rescan_frame, text="Forces the downloader to re-check the server for every file, even if it exists locally.\nUseful if downloads were interrupted or files are corrupted.", 
-                     text_color="gray", font=("Inter", 11), justify="left").pack(anchor="w", padx=28)
+                     text_color="gray", font=("Segoe UI", 11), justify="left").pack(anchor="w", padx=28)
 
         # 2. Clear Cache
         cache_frame = ctk.CTkFrame(self.maint_card.body, fg_color="transparent")
         cache_frame.pack(fill="x", padx=5, pady=10)
         
-        ctk.CTkButton(cache_frame, text="🧹 Sweep Cache", width=120, fg_color="#333", hover_color="#444", 
+        ctk.CTkButton(cache_frame, text="🧹 Sweep Cache", width=120, fg_color="#3a3a3d", hover_color="#3a3a3d", 
                       command=self.clear_cache).pack(anchor="w", padx=5)
         ctk.CTkLabel(cache_frame, text="Clears the internal list of 'seen' songs for the current session.\nDoes not delete files. Resets the queue so you can add songs again.", 
-                     text_color="gray", font=("Inter", 11), justify="left").pack(anchor="w", padx=5, pady=(2,0))
+                     text_color="gray", font=("Segoe UI", 11), justify="left").pack(anchor="w", padx=5, pady=(2,0))
 
         # 3. Debug Log
         debug_frame = ctk.CTkFrame(self.maint_card.body, fg_color="transparent")
         debug_frame.pack(fill="x", padx=5, pady=5)
         
-        ctk.CTkButton(debug_frame, text="🐞 Open Debug Log", width=120, fg_color="#333", hover_color="#444", 
+        ctk.CTkButton(debug_frame, text="🐞 Open Debug Log", width=120, fg_color="#3a3a3d", hover_color="#3a3a3d", 
                       command=self.open_debug).pack(anchor="w", padx=5)
         ctk.CTkLabel(debug_frame, text="View raw internal logs and API responses.\nUseful for troubleshooting errors or reporting bugs.", 
-                     text_color="gray", font=("Inter", 11), justify="left").pack(anchor="w", padx=5, pady=(2,0))
+                     text_color="gray", font=("Segoe UI", 11), justify="left").pack(anchor="w", padx=5, pady=(2,0))
                      
-        ctk.CTkButton(debug_frame, text="📤 Export Log File", width=120, fg_color="#333", hover_color="#444", 
+        ctk.CTkButton(debug_frame, text="📤 Export Log File", width=120, fg_color="#3a3a3d", hover_color="#3a3a3d", 
                       command=self.export_log).pack(anchor="w", padx=5, pady=(10, 0))
         ctk.CTkLabel(debug_frame, text="Save the 'debug.log' file to share with developer.", 
-                     text_color="gray", font=("Inter", 11), justify="left").pack(anchor="w", padx=5, pady=(2,0))
+                     text_color="gray", font=("Segoe UI", 11), justify="left").pack(anchor="w", padx=5, pady=(2,0))
         
         self.save_btn = ctk.CTkButton(self, text="Save Settings", command=self.save_settings, width=200)
         self.save_btn.pack(pady=20)

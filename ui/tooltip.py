@@ -38,11 +38,11 @@ class ToolTip:
         label = tk.Label(
             self.tooltip_window,
             text=self.text,
-            background="#18181b",
+            background="#252526",
             foreground="white",
             relief="solid",
             borderwidth=1,
-            font=("Inter", 10),
+            font=("Segoe UI", 10),
             padx=8,
             pady=4,
             wraplength=300  # Wrap long text

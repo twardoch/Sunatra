@@ -5,7 +5,7 @@ class Sidebar(ctk.CTkFrame):
     """Left sidebar navigation — Spotify-style."""
     def __init__(self, parent, on_navigate, **kwargs):
         super().__init__(parent, width=220, corner_radius=0,
-                         fg_color="#0a0a0a", **kwargs)
+                         fg_color="#1a1a1b", **kwargs)
 
         self.on_navigate = on_navigate
         self.buttons = {}
@@ -20,19 +20,19 @@ class Sidebar(ctk.CTkFrame):
         
         # Logo
         logo_label = ctk.CTkLabel(header_frame, text="SunoSync",
-                                  font=("Inter", 20, "bold"),
+                                  font=("Segoe UI", 20, "bold"),
                                   text_color="#FFFFFF")
         logo_label.pack(side="left")
         
         # Mini Settings Icon (Redundant access)
         settings_btn = ctk.CTkButton(header_frame, text="⚙", width=24, height=24,
-                                     fg_color="transparent", hover_color="#333333",
-                                     font=("Inter", 14), text_color="#94a3b8",
+                                     fg_color="transparent", hover_color="#3a3a3d",
+                                     font=("Segoe UI", 14), text_color="#9aa0a6",
                                      command=lambda: self.handle_click("settings"))
         settings_btn.pack(side="right")
 
         # Thin separator under logo
-        ctk.CTkFrame(self, height=1, fg_color="#333333").pack(fill="x", padx=15, pady=(0, 10))
+        ctk.CTkFrame(self, height=1, fg_color="#3a3a3d").pack(fill="x", padx=15, pady=(0, 10))
 
         # --- Navigation Container (Top, Expands) ---
         self.nav_container = ctk.CTkFrame(self, fg_color="transparent")
@@ -57,15 +57,15 @@ class Sidebar(ctk.CTkFrame):
         """Update active state of buttons — white text + purple left border + background."""
         for name, btn in self.buttons.items():
             if name == view_name:
-                # Active: bg-violet-500/10 (matched approx color #2e243f from FilterBar)
-                btn.configure(fg_color="#2e243f",
+                # Active: bg-violet-500/10 (matched approx color #26333f from FilterBar)
+                btn.configure(fg_color="#26333f",
                               text_color="#FFFFFF")
                 # Show purple indicator
                 if name in self.indicators:
-                    self.indicators[name].configure(fg_color="#8B5CF6")
+                    self.indicators[name].configure(fg_color="#5c8bc4")
             else:
                 btn.configure(fg_color="transparent",
-                              text_color="#B3B3B3")
+                              text_color="#9aa0a6")
                 # Hide indicator
                 if name in self.indicators:
                     self.indicators[name].configure(fg_color="transparent")
@@ -94,10 +94,10 @@ class Sidebar(ctk.CTkFrame):
                             anchor="w",
                             command=lambda: self.handle_click(view_name),
                             fg_color="transparent",
-                            text_color="#B3B3B3",
-                            hover_color="#2A2A2A",
+                            text_color="#9aa0a6",
+                            hover_color="#2a2a2b",
                             height=28,
-                            font=("Inter", 13))
+                            font=("Segoe UI", 13))
 
         btn.pack(side="left", fill="x", expand=True, padx=(3, 10))
 

@@ -6,7 +6,7 @@ class LyricsPanel(ctk.CTkFrame):
     """Side panel for displaying song lyrics."""
     
     def __init__(self, parent, **kwargs):
-        super().__init__(parent, width=300, fg_color="#18181b", **kwargs)
+        super().__init__(parent, width=300, fg_color="#252526", **kwargs)
         
         self.is_visible = False
         self.current_lyrics = ""
@@ -15,17 +15,17 @@ class LyricsPanel(ctk.CTkFrame):
         header = ctk.CTkFrame(self, fg_color="transparent", height=50)
         header.pack(fill="x", padx=10, pady=(10, 5))
         
-        title_label = ctk.CTkLabel(header, text="🎤 Lyrics", font=("Inter", 16, "bold"))
+        title_label = ctk.CTkLabel(header, text="🎤 Lyrics", font=("Segoe UI", 16, "bold"))
         title_label.pack(side="left")
         
         close_btn = ctk.CTkButton(header, text="✕", width=30, height=30, 
-                                   fg_color="transparent", hover_color="#ef4444",
-                                   command=self.hide, font=("Inter", 16))
+                                   fg_color="transparent", hover_color="#f44336",
+                                   command=self.hide, font=("Segoe UI", 16))
         close_btn.pack(side="right")
         
         # Lyrics display area (scrollable)
-        self.lyrics_text = ctk.CTkTextbox(self, wrap="word", font=("Inter", 12),
-                                          fg_color="#27272a", text_color="#e4e4e7",
+        self.lyrics_text = ctk.CTkTextbox(self, wrap="word", font=("Segoe UI", 12),
+                                          fg_color="#2d2d30", text_color="#e0e0e0",
                                           activate_scrollbars=True)
         self.lyrics_text.pack(fill="both", expand=True, padx=10, pady=(5, 10))
         
@@ -41,7 +41,7 @@ class LyricsPanel(ctk.CTkFrame):
         self.lyrics_text.delete("1.0", "end")
         self.lyrics_text.insert("1.0", "\n\n\n        No Lyrics Found\n\n    Play a song with lyrics to view them here")
         self.lyrics_text.tag_add("center", "1.0", "end")
-        self.lyrics_text.tag_config("center", justify="center", foreground="#71717a")
+        self.lyrics_text.tag_config("center", justify="center", foreground="#6a6a6e")
         self.lyrics_text.configure(state="disabled")
     
     def show_lyrics(self, lyrics_text):
@@ -57,7 +57,7 @@ class LyricsPanel(ctk.CTkFrame):
             # Display actual lyrics
             self.lyrics_text.insert("1.0", lyrics_text)
             self.lyrics_text.tag_add("lyrics", "1.0", "end")
-            self.lyrics_text.tag_config("lyrics", justify="left", foreground="#e4e4e7")
+            self.lyrics_text.tag_config("lyrics", justify="left", foreground="#e0e0e0")
         else:
             # Show placeholder
             self.show_placeholder()

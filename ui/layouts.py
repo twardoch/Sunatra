@@ -12,14 +12,14 @@ from ui.widgets import CollapsibleCard, FilterPopup, WorkspaceBrowser
 def create_auth_card(parent, app):
     """Create the authorization card with token input."""
     # Parent is likely a scrollable frame or main frame
-    bg = getattr(app, 'card_bg', '#27272a')
+    bg = getattr(app, 'card_bg', '#2d2d30')
     card = CollapsibleCard(parent, title="Authorization", bg_color=bg,
-                          corner_radius=12, padding=12, collapsed=False)
+                          corner_radius=6, padding=12, collapsed=False)
     card.pack(fill="x", pady=(0, 12))
     
     body = card.body
     
-    ctk.CTkLabel(body, text="Bearer Token", font=("Inter", 12, "bold"), text_color="gray").pack(anchor="w", padx=5, pady=(5, 0))
+    ctk.CTkLabel(body, text="Bearer Token", font=("Segoe UI", 12, "bold"), text_color="gray").pack(anchor="w", padx=5, pady=(5, 0))
     
     # Input Row
     row = ctk.CTkFrame(body, fg_color="transparent")
@@ -37,15 +37,15 @@ def create_auth_card(parent, app):
 
 def create_settings_card(parent, app, base_path):
     """Create the settings card with path and toggles."""
-    bg = getattr(app, 'card_bg', '#27272a')
+    bg = getattr(app, 'card_bg', '#2d2d30')
     card = CollapsibleCard(parent, title="Download Settings", bg_color=bg,
-                          corner_radius=12, padding=12, collapsed=False)
+                          corner_radius=6, padding=12, collapsed=False)
     card.pack(fill="x", pady=(0, 12))
     body = card.body
     
     # --- Downloads Path ---
-    ctk.CTkLabel(body, text="Downloads Folder", font=("Inter", 12, "bold"), text_color="gray").pack(anchor="w", padx=5, pady=(5, 0))
-    ctk.CTkLabel(body, text="Where new downloads land.", font=("Inter", 10), text_color="#64748b").pack(anchor="w", padx=5)
+    ctk.CTkLabel(body, text="Downloads Folder", font=("Segoe UI", 12, "bold"), text_color="gray").pack(anchor="w", padx=5, pady=(5, 0))
+    ctk.CTkLabel(body, text="Where new downloads land.", font=("Segoe UI", 10), text_color="#6a6a6e").pack(anchor="w", padx=5)
 
     path_row = ctk.CTkFrame(body, fg_color="transparent")
     path_row.pack(fill="x", padx=5, pady=5)
@@ -60,8 +60,8 @@ def create_settings_card(parent, app, base_path):
     browse_btn.pack(side="right")
 
     # --- Library Path ---
-    ctk.CTkLabel(body, text="Library Folder", font=("Inter", 12, "bold"), text_color="gray").pack(anchor="w", padx=5, pady=(10, 0))
-    ctk.CTkLabel(body, text="Where curated keepers live (use \u201cAdd to Library\u201d in the Downloads tab).", font=("Inter", 10), text_color="#64748b").pack(anchor="w", padx=5)
+    ctk.CTkLabel(body, text="Library Folder", font=("Segoe UI", 12, "bold"), text_color="gray").pack(anchor="w", padx=5, pady=(10, 0))
+    ctk.CTkLabel(body, text="Where curated keepers live (use \u201cAdd to Library\u201d in the Downloads tab).", font=("Segoe UI", 10), text_color="#6a6a6e").pack(anchor="w", padx=5)
 
     library_row = ctk.CTkFrame(body, fg_color="transparent")
     library_row.pack(fill="x", padx=5, pady=5)
@@ -118,9 +118,9 @@ def create_settings_card(parent, app, base_path):
 
 def create_scraping_card(parent, app):
     """Create the scraping options card."""
-    bg = getattr(app, 'card_bg', '#27272a')
+    bg = getattr(app, 'card_bg', '#2d2d30')
     card = CollapsibleCard(parent, title="Scraping Options", bg_color=bg,
-                          corner_radius=12, padding=12, collapsed=False)
+                          corner_radius=6, padding=12, collapsed=False)
     card.pack(fill="x", pady=(0, 12))
     body = card.body
     
@@ -131,7 +131,7 @@ def create_scraping_card(parent, app):
     def add_input(frame, label, var, width=60):
         c = ctk.CTkFrame(frame, fg_color="transparent")
         c.pack(side="left", padx=(0, 20))
-        ctk.CTkLabel(c, text=label, font=("Inter", 12, "bold"), text_color="gray").pack(anchor="w")
+        ctk.CTkLabel(c, text=label, font=("Segoe UI", 12, "bold"), text_color="gray").pack(anchor="w")
         # Spinbox doesn't exist natively in basic CTk, using Entry for now or external lib. 
         # Actually CTk doesn't have Spinbox. We'll use Entry with validation ideally, or just Entry.
         # User can type number.
@@ -162,11 +162,11 @@ def create_scraping_card(parent, app):
     app.playlist_btn.pack(side="left", fill="x", expand=True, padx=(5, 0))
 
     # Preload Button
-    app.preload_btn = ctk.CTkButton(body, text="Preload List", command=app.preload_songs, fg_color="#db2777", hover_color="#be185d")
+    app.preload_btn = ctk.CTkButton(body, text="Preload List", command=app.preload_songs, fg_color="#3f6a9e", hover_color="#3f6a9e")
     app.preload_btn.pack(fill="x", padx=5, pady=(5, 0))
     
     app.force_rescan_var = ctk.BooleanVar(value=False)
-    rescan_chk = ctk.CTkCheckBox(body, text="Force Rescan (Ignore Cache)", variable=app.force_rescan_var, font=("Inter", 11), text_color="gray")
+    rescan_chk = ctk.CTkCheckBox(body, text="Force Rescan (Ignore Cache)", variable=app.force_rescan_var, font=("Segoe UI", 11), text_color="gray")
     rescan_chk.pack(anchor="e", padx=10, pady=(5, 5))
 
     return card
@@ -179,13 +179,13 @@ def create_action_area(parent, app):
     
     # Start Button (Primary)
     app.start_btn = ctk.CTkButton(frame, text="Start Download", command=app.start_download_thread,
-                                  height=45, font=("Inter", 16, "bold"), fg_color="#7c3aed", hover_color="#6d28d9")
+                                  height=45, font=("Segoe UI", 16, "bold"), fg_color="#3f6a9e", hover_color="#3f6a9e")
     app.start_btn.pack(side="left", padx=(0, 10), fill="x", expand=True)
     
     # Stop Button (Destructive)
     app.stop_btn = ctk.CTkButton(frame, text="Stop", command=app.stop_download,
-                                height=45, font=("Inter", 16, "bold"), fg_color="transparent", 
-                                border_color="#ef4444", border_width=2, text_color="#ef4444", hover_color="#450a0a")
+                                height=45, font=("Segoe UI", 16, "bold"), fg_color="transparent", 
+                                border_color="#f44336", border_width=2, text_color="#f44336", hover_color="#450a0a")
     app.stop_btn.pack(side="left", padx=(0, 0))
     app.stop_btn.configure(state="disabled")
     
@@ -210,14 +210,14 @@ def create_token_dialog(app):
     except Exception:
         return
 
-    ctk.CTkLabel(dialog, text="CONNECT TO SUNO", font=("Inter", 18, "bold")).pack(pady=15)
+    ctk.CTkLabel(dialog, text="CONNECT TO SUNO", font=("Segoe UI", 18, "bold")).pack(pady=15)
 
     # --- Option 1: Chrome Extension (Recommended) ---
-    ext_frame = ctk.CTkFrame(dialog, fg_color="#1a2332", corner_radius=10)
+    ext_frame = ctk.CTkFrame(dialog, fg_color="#252526", corner_radius=6)
     ext_frame.pack(fill="x", padx=20, pady=(0, 10))
 
     ctk.CTkLabel(ext_frame, text="⚡ Option 1 — Chrome Extension (Recommended)",
-                 font=("Inter", 13, "bold"), text_color="#10b981").pack(anchor="w", padx=12, pady=(10, 5))
+                 font=("Segoe UI", 13, "bold"), text_color="#66bb6a").pack(anchor="w", padx=12, pady=(10, 5))
 
     ext_steps = (
         "1. Open Chrome → navigate to chrome://extensions\n"
@@ -225,18 +225,18 @@ def create_token_dialog(app):
         "3. Click 'Load unpacked' → select the chrome_extension folder\n"
         "4. Log in to suno.com — token syncs automatically!"
     )
-    ctk.CTkLabel(ext_frame, text=ext_steps, justify="left", font=("Inter", 11),
-                 text_color="#B3B3B3").pack(anchor="w", padx=12, pady=(0, 10))
+    ctk.CTkLabel(ext_frame, text=ext_steps, justify="left", font=("Segoe UI", 11),
+                 text_color="#9aa0a6").pack(anchor="w", padx=12, pady=(0, 10))
 
     # --- Divider ---
-    ctk.CTkLabel(dialog, text="— OR —", font=("Inter", 11), text_color="#666").pack(pady=5)
+    ctk.CTkLabel(dialog, text="— OR —", font=("Segoe UI", 11), text_color="#6a6a6e").pack(pady=5)
 
     # --- Option 2: Manual (Original) ---
-    manual_frame = ctk.CTkFrame(dialog, fg_color="#1f1f2e", corner_radius=10)
+    manual_frame = ctk.CTkFrame(dialog, fg_color="#252526", corner_radius=6)
     manual_frame.pack(fill="x", padx=20, pady=(0, 10))
 
     ctk.CTkLabel(manual_frame, text="📋 Option 2 — Manual (Console)",
-                 font=("Inter", 13, "bold"), text_color="#8B5CF6").pack(anchor="w", padx=12, pady=(10, 5))
+                 font=("Segoe UI", 13, "bold"), text_color="#5c8bc4").pack(anchor="w", padx=12, pady=(10, 5))
 
     steps = (
         "1. Log in to Suno in the opened browser tab.\n"
@@ -244,12 +244,12 @@ def create_token_dialog(app):
         "3. Go to the 'Console' tab.\n"
         "4. Copy the code below and paste it, then press Enter."
     )
-    ctk.CTkLabel(manual_frame, text=steps, justify="left", font=("Inter", 11),
-                 text_color="#B3B3B3").pack(anchor="w", padx=12, pady=(0, 5))
+    ctk.CTkLabel(manual_frame, text=steps, justify="left", font=("Segoe UI", 11),
+                 text_color="#9aa0a6").pack(anchor="w", padx=12, pady=(0, 5))
     
     code = "window.Clerk.session.getToken().then(t => prompt('Copy this token:', t))"
     
-    code_frame = ctk.CTkFrame(manual_frame, fg_color="#272727")
+    code_frame = ctk.CTkFrame(manual_frame, fg_color="#2d2d30")
     code_frame.pack(fill="x", padx=12, pady=5)
     
     code_entry = ctk.CTkEntry(code_frame, font=("Consolas", 11))
@@ -261,14 +261,14 @@ def create_token_dialog(app):
         pyperclip.copy(code)
         
     ctk.CTkButton(code_frame, text="Copy", command=copy_code, width=50, height=24,
-                  fg_color="#444", hover_color="#555").pack(side="left", padx=8)
+                  fg_color="#3a3a3d", hover_color="#5a5a5f").pack(side="left", padx=8)
     copy_code() # Auto copy
     
     ctk.CTkLabel(manual_frame, text="5. Copy the token from the popup → paste below:",
-                 justify="left", font=("Inter", 11), text_color="#B3B3B3").pack(anchor="w", padx=12, pady=(5, 2))
+                 justify="left", font=("Segoe UI", 11), text_color="#9aa0a6").pack(anchor="w", padx=12, pady=(5, 2))
     
-    token_input = ctk.CTkEntry(manual_frame, fg_color="#272727", border_color="#333",
-                               text_color="#fff", font=("Inter", 11))
+    token_input = ctk.CTkEntry(manual_frame, fg_color="#2d2d30", border_color="#3a3a3d",
+                               text_color="#fff", font=("Segoe UI", 11))
     token_input.pack(fill="x", padx=12, pady=(0, 10))
     token_input.focus_set()
     
@@ -283,4 +283,4 @@ def create_token_dialog(app):
             pass
     
     ctk.CTkButton(dialog, text="Submit Token", command=submit, height=40,
-                  fg_color="#7c3aed", hover_color="#6d28d9").pack(pady=15)
+                  fg_color="#3f6a9e", hover_color="#3f6a9e").pack(pady=15)
